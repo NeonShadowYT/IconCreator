@@ -1,128 +1,43 @@
-# 🖼️IconCreator
+# 🖼️ Icons Creator
+Инструмент для создания иконок из 3D моделей в редакторе Unity.
+Tool for creating icons from 3D models in Unity Editor.
 
-Профессиональный инструмент для создания иконок из 3D моделей в Unity Editor
-Мощный и интуитивно понятный инструмент, который позволяет создавать 
-высококачественные иконки из ваших 3D моделей прямо в редакторе Unity 
-без необходимости использования внешних программ.
+<img width="1919" height="902" alt="Снимок экрана 2025-11-09 152634" src="https://github.com/user-attachments/assets/111f7a3c-13e0-4d87-bdcb-616e07fb5bba" />
 
-⚠️ ВАЖНО: Установка в папку Editor
+# ✨ Основные возможности / Key Features
 
-Для корректной работы инструмента необходимо, чтобы все файлы скриптов находились в папке Editor внутри вашего проекта Unity.
+Создание иконок из 3D моделей
+Настройка размера, теней и поворота камеры
+Пакетная обработка объектов
+Предпросмотр в реальном времени
+Поддержка Unity 6+ и URP
 
-✨ Основные возможности
+Create icons from 3D models
+Customize size, shadows and camera rotation
+Batch object processing
+Real-time preview
+Unity 6.2 URP support
 
-🎯 Умное создание иконок
+# ⚡ Быстрый старт / Quick Start
 
-Автоматическое позиционирование - камера автоматически настраивается под границы объекта
-Пакетная обработка - создавайте иконки для множества объектов одновременно
-Поддержка папок - добавляйте целые папки с префабами для массового создания
+1. Откройте Neon Imperium/Создатель иконок
+   
+   Open Neon Imperium/Icons Creator
+   
+3. Добавьте объекты
+   
+   Add objects
+   
+4. Настройте параметры
+   
+   Adjust settings
+   
+5. Создайте иконки
+   
+   Create icons
 
-⚙️ Расширенные настройки
-Настройки камеры
-  Регулируемый поворот камеры
-  Настраиваемый внутренний отступ
-  Ортографическая проекция
-Параметры текстуры
-  Размеры от 32x32 до 2048x2048 пикселей
-  Настройка сжатия (CompressedHQ, Compressed, Uncompressed)
-  Фильтрация (Point, Bilinear, Trilinear)
-  Уровень анизотропной фильтрации
-  
-👥 Система теней
+# ⚠️ Важно / Important
 
-Встроенные тени - добавляйте тени непосредственно на текстуру
-Полная настройка - цвет, смещение, масштаб и прозрачность
-Независимость от освещения - тени рендерятся независимо от сцены
+Все скрипты должны быть в папке Editor
 
-🎨 Профессиональный интерфейс
-
-Предпросмотр в реальном времени - видите результат до сохранения
-Группировка настроек - удобные сворачиваемые секции
-Подсказки и советы - встроенная документация
-Сохранение настроек - автоматическое сохранение между сессиями
-
-🔧 Технические особенности
-
-Автоматическая настройка сцены - создает оптимизированную сцену для рендера
-Поддержка слоев - изолирует объекты для чистого рендера
-Оптимизированный пайплайн - быстрый рендер даже для сложных моделей
-Совместимость с URP - проверено в Unity 6+
-
-🚀 Быстрый старт
-
-Откройте окно через Neon Imperium/Создатель иконок
-Добавьте объекты для создания иконок
-Настройте параметры под ваши нужды
-Нажмите "Создать иконки" и выберите папку для сохранения
-
-# 🖼️IconCreator
-
-Professional 3D Model to Icon Creation Tool for Unity Editor
-A powerful and intuitive tool that enables you to create high-quality 
-icons from your 3D models directly in the Unity Editor without needing 
-external programs.
-
-⚠️ IMPORTANT: Installation in Editor Folder
-
-For the tool to work correctly, all script files must be located in an Editor folder within your Unity project.
-
-✨ Key Features
-
-🎯 Smart Icon Creation
-
-Automatic Positioning - camera automatically adjusts to object bounds
-Batch Processing - create icons for multiple objects simultaneously
-Folder Support - add entire folders of prefabs for mass creation
-
-⚙️ Advanced Settings
-
-Camera Settings
-  Adjustable camera rotation (standard isometric view 45°/-45°)
-  Customizable padding
-  Orthographic projection
-  
-Texture Parameters
-  Sizes from 32x32 to 2048x2048 pixels
-  Compression settings (CompressedHQ, Compressed, Uncompressed)
-  Filter modes (Point, Bilinear, Trilinear)
-  Anisotropic filtering level
-  
-👥 Shadow System
-
-Built-in Shadows - add shadows directly to the texture
-Full Customization - color, offset, scale, and transparency
-Lighting Independence - shadows render independently of scene lighting
-
-🎨 Professional Interface
-
-Real-time Preview - see results before saving
-Grouped Settings - convenient collapsible sections
-Tooltips and Guidance - built-in documentation
-Settings Persistence - automatic saving between sessions
-
-🔧 Technical Features
-
-Automatic Scene Setup - creates optimized render scene
-Layer Support - isolates objects for clean renders
-Optimized Pipeline - fast rendering even for complex models
-URP Compatibility - works in Unity 6+
-
-🚀 Quick Start
-
-Open window via Neon Imperium/Icons Creator
-Add objects for icon creation
-Adjust parameters to your needs
-Click "Create Icons" and select save folder
-
-
-
-
-
-
-
-
-
-
-
-
-
+Important: All scripts must be in Editor folder
