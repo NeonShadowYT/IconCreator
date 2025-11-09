@@ -6,6 +6,7 @@
 без необходимости использования внешних программ.
 
 ⚠️ ВАЖНО: Установка в папку Editor
+
 Для корректной работы инструмента необходимо, чтобы все файлы скриптов находились в папке Editor внутри вашего проекта Unity.
 
 ✨ Основные возможности
@@ -62,6 +63,7 @@ icons from your 3D models directly in the Unity Editor without needing
 external programs.
 
 ⚠️ IMPORTANT: Installation in Editor Folder
+
 For the tool to work correctly, all script files must be located in an Editor folder within your Unity project.
 
 ✨ Key Features
