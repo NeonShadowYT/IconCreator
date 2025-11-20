@@ -1,4 +1,5 @@
 using System.Linq;
+using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 
@@ -22,43 +23,79 @@ namespace NeonImperium.IconsCreation
 
         public void InitializeEnvironment()
         {
-            EnsureCameraTagExists();
-            _sceneService.EnsureSceneExists();
+            if (EditorApplication.isPlaying) return;
+
+            try
+            {
+                EnsureCameraTagExists();
+                _sceneService.EnsureSceneExists();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to initialize environment: {e.Message}");
+            }
         }
 
         private void EnsureCameraTagExists()
         {
-            if (!InternalEditorUtility.tags.Contains("IconsCreationCamera"))
-                InternalEditorUtility.AddTag("IconsCreationCamera");
+            if (EditorApplication.isPlaying) return;
+
+            try
+            {
+                if (!InternalEditorUtility.tags.Contains("IconsCreationCamera"))
+                    InternalEditorUtility.AddTag("IconsCreationCamera");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to ensure camera tag: {e.Message}");
+            }
         }
 
         public void SetData(IconsCreatorData data)
         {
+            if (EditorApplication.isPlaying) return;
+
             _data = data;
             
-            _cameraService.Initialize(data.Texture, data.Camera, data.Shadow);
-            _saverService.Initialize(data.Directory, data.Texture);
-            
-            UpdatePreview();
+            try
+            {
+                _cameraService.Initialize(data.Texture, data.Camera, data.Shadow);
+                _saverService.Initialize(data.Directory, data.Texture);
+                
+                UpdatePreview();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to set data: {e.Message}");
+            }
         }
 
         private void UpdatePreview()
         {
             if (!HasValidTargets) return;
 
-            // Создаем превью для всех объектов
-            CameraPreviews = new Texture2D[_data.Targets.Length];
-            
-            for (int i = 0; i < _data.Targets.Length; i++)
+            try
             {
-                _sceneService.ExecuteWithTarget(_data.Targets[i], _data.Camera.RenderShadows, target =>
+                // Создаем превью для всех объектов
+                CameraPreviews = new Texture2D[_data.Targets.Length];
+                
+                for (int i = 0; i < _data.Targets.Length; i++)
                 {
-                    if (target != null)
+                    if (_data.Targets[i] == null) continue;
+
+                    _sceneService.ExecuteWithTarget(_data.Targets[i], _data.Light, _data.Camera.RenderShadows, target =>
                     {
-                        _cameraService.SetupForTarget(target);
-                        CameraPreviews[i] = _cameraService.CaptureView();
-                    }
-                });
+                        if (target != null)
+                        {
+                            _cameraService.SetupForTarget(target);
+                            CameraPreviews[i] = _cameraService.CaptureView();
+                        }
+                    });
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to update preview: {e.Message}");
             }
         }
 
@@ -66,20 +103,54 @@ namespace NeonImperium.IconsCreation
         {
             if (!HasValidTargets) return;
 
-            foreach (GameObject target in _data.Targets)
+            try
             {
-                _sceneService.ExecuteWithTarget(target, _data.Camera.RenderShadows, t =>
+                foreach (GameObject target in _data.Targets)
                 {
-                    _cameraService.SetupForTarget(t);
-                    Texture2D icon = _cameraService.CaptureView();
-                    _saverService.SaveIcon(icon, t.name);
-                });
+                    if (target == null) continue;
+
+                    _sceneService.ExecuteWithTarget(target, _data.Light, _data.Camera.RenderShadows, t =>
+                    {
+                        if (t != null)
+                        {
+                            _cameraService.SetupForTarget(t);
+                            Texture2D icon = _cameraService.CaptureView();
+                            if (icon != null)
+                            {
+                                _saverService.SaveIcon(icon, target.name);
+                            }
+                        }
+                    });
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to create icons: {e.Message}");
+                throw;
             }
         }
 
         public void Dispose()
         {
-            _saverService.Dispose();
+            try
+            {
+                // Очищаем превью
+                if (CameraPreviews != null)
+                {
+                    foreach (var preview in CameraPreviews)
+                    {
+                        if (preview != null)
+                            UnityEngine.Object.DestroyImmediate(preview);
+                    }
+                    CameraPreviews = null;
+                }
+
+                _saverService.Dispose();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Error during disposal: {e.Message}");
+            }
         }
 
         private bool HasValidTargets => _data?.Targets?.Any(t => t) ?? false;

@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿﻿using System.Collections.Generic;
 using System.Linq;
 using NeonImperium.IconsCreation.Extensions;
+using NeonImperium.IconsCreation.SettingsDrawers;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,26 +10,30 @@ namespace NeonImperium.IconsCreation
     public class IconsCreatorWindow : EditorWindow
     {   
         [SerializeField] private string directory = "Assets/Icons/";
+        [SerializeField] private string presetsFolder = "Assets/Starve Neon/Script/Extension/Editor/IconsCreator/Presets";
         [SerializeField] private TextureSettings textureSettings = new();
         [SerializeField] private CameraSettings cameraSettings = new();
+        [SerializeField] private LightSettings lightSettings = new();
         [SerializeField] private ShadowSettings shadowSettings = new();
         [SerializeField] private List<Object> targets = new();
 
-        private const int PREVIEW_SIZE = 150;
-        private const int MAX_PREVIEWS_PER_ROW = 3;
         private readonly IconCreatorService _iconCreator = new();
+        private PresetManager _presetManager;
         private Vector2 _scrollPosition;
         private Vector2 _previewScrollPosition;
         
         private EditorStyleManager _styleManager;
         private bool _showHelpBoxes = false;
         private bool _showSpawnSettings = true;
+        private bool _showLightSettings = true;
         private bool _showShadowSettings = false;
         private bool _showSpriteSettings = false;
         private bool _showObjectsSettings = true;
         private bool _showPreview = true;
+        private bool _showPresetSettings = true;
 
         private bool HasValidTargets => targets.ExtractAllGameObjects().Where(g => g.HasVisibleMesh()).Any();
+        private int TargetCount => targets.ExtractAllGameObjects().Count(g => g.HasVisibleMesh());
 
         [MenuItem("Neon Imperium/Создатель иконок")]
         private static void OpenWindow() 
@@ -40,56 +45,201 @@ namespace NeonImperium.IconsCreation
         private void OnEnable()
         {
             _styleManager = new EditorStyleManager();
-            _iconCreator.InitializeEnvironment();
-            LoadSettings();
+            
+            // Подписываемся на события изменения режима воспроизведения
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            
+            // Инициализируем только если не в Play Mode
+            if (!EditorApplication.isPlaying)
+            {
+                InitializeServices();
+            }
         }
 
-        private void OnDisable() 
+        private void OnDisable()
         {
-            SaveSettings();
-            _iconCreator.Dispose();
+            // Отписываемся от событий
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+
+            // Очищаем ресурсы
+            CleanupResources();
+        }
+        
+        private void OnDestroy() 
+        {
+            // Отписываемся от событий
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
             
-            if (_styleManager != null)
+            // Очищаем ресурсы
+            CleanupResources();
+        }
+
+        private void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            switch (state)
             {
-                _styleManager.Dispose();
+                case PlayModeStateChange.ExitingEditMode:
+                    // При выходе из Edit Mode очищаем ресурсы
+                    CleanupResources();
+                    break;
+                    
+                case PlayModeStateChange.EnteredEditMode:
+                    // При возвращении в Edit Mode инициализируем сервисы
+                    if (!EditorApplication.isPlaying)
+                    {
+                        InitializeServices();
+                    }
+                    break;
+                    
+                case PlayModeStateChange.EnteredPlayMode:
+                    // При входе в Play Mode очищаем ресурсы
+                    CleanupResources();
+                    Repaint();
+                    break;
+            }
+        }
+
+        private void InitializeServices()
+        {
+            try
+            {
+                _iconCreator.InitializeEnvironment();
+                LoadSettings();
+                
+                // Инициализируем PresetManager после загрузки настроек
+                _presetManager = new PresetManager(_iconCreator, presetsFolder);
+                
+                // Загружаем последний использованный пресет если есть
+                LoadCurrentPreset();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to initialize Icons Creator: {e.Message}");
+            }
+        }
+
+        private void CleanupResources()
+        {
+            try
+            {
+                SaveSettings();
+                _iconCreator?.Dispose();
+                _styleManager?.Dispose();
                 _styleManager = null;
+                
+                // Очищаем кэш превью
+                PresetDrawer.ClearCache();
+                
+                // Очищаем превью иконок
+                if (_iconCreator?.CameraPreviews != null)
+                {
+                    foreach (var preview in _iconCreator.CameraPreviews)
+                    {
+                        if (preview != null)
+                            UnityEngine.Object.DestroyImmediate(preview);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Error during cleanup: {e.Message}");
             }
         }
 
         private void LoadSettings()
         {
-            directory = EditorPrefs.GetString(nameof(directory), "Assets/Icons/");
-            textureSettings.Size = EditorPrefs.GetInt("textureSize", 512);
-            cameraSettings.Padding = EditorPrefs.GetFloat("padding", 0.1f);
-            _showHelpBoxes = EditorPrefs.GetBool("showHelpBoxes", false);
-            textureSettings.Compression = (TextureImporterCompression)EditorPrefs.GetInt("compression", (int)TextureImporterCompression.CompressedHQ);
-            textureSettings.FilterMode = (FilterMode)EditorPrefs.GetInt("filterMode", (int)FilterMode.Point);
-            textureSettings.AnisoLevel = EditorPrefs.GetInt("anisoLevel", 0);
-            
-            cameraSettings.Rotation = LoadVector3("cameraRotation", new Vector3(45f, -45f, 0f));
-            
-            shadowSettings.Enabled = EditorPrefs.GetBool("shadowEnabled", false);
-            shadowSettings.Color = LoadColor("shadowColor", new Color(0f, 0f, 0f, 0.5f));
-            shadowSettings.Offset = LoadVector2("shadowOffset", new Vector2(0.05f, -0.05f));
-            shadowSettings.Scale = EditorPrefs.GetFloat("shadowScale", 0.95f);
+            try
+            {
+                directory = EditorPrefs.GetString(nameof(directory), "Assets/Icons/");
+                presetsFolder = EditorPrefs.GetString("presetsFolder", "Assets/Starve Neon/Script/Extension/Editor/IconsCreator/Presets");
+                textureSettings.Size = EditorPrefs.GetInt("textureSize", 512);
+                cameraSettings.Padding = EditorPrefs.GetFloat("padding", 0.1f);
+                _showHelpBoxes = EditorPrefs.GetBool("showHelpBoxes", false);
+                textureSettings.Compression = (TextureImporterCompression)EditorPrefs.GetInt("compression", (int)TextureImporterCompression.CompressedHQ);
+                textureSettings.FilterMode = (FilterMode)EditorPrefs.GetInt("filterMode", (int)FilterMode.Point);
+                textureSettings.AnisoLevel = EditorPrefs.GetInt("anisoLevel", 0);
+                
+                cameraSettings.Rotation = LoadVector3("cameraRotation", new Vector3(45f, -45f, 0f));
+                
+                lightSettings.Type = (LightType)EditorPrefs.GetInt("lightType", (int)LightType.Directional);
+                lightSettings.DirectionalRotation = LoadVector3("directionalRotation", new Vector3(50f, -30f, 0f));
+                lightSettings.DirectionalColor = LoadColor("directionalColor", Color.white);
+                lightSettings.DirectionalIntensity = EditorPrefs.GetFloat("directionalIntensity", 1f);
+                
+                for (int i = 0; i < lightSettings.PointLights.Length; i++)
+                {
+                    lightSettings.PointLights[i].Position = LoadVector3($"pointLight{i}Position", new Vector3(1, 0.5f, -0.5f));
+                    lightSettings.PointLights[i].Color = LoadColor($"pointLight{i}Color", Color.white);
+                    lightSettings.PointLights[i].Intensity = EditorPrefs.GetFloat($"pointLight{i}Intensity", 1f);
+                }
+                
+                shadowSettings.Enabled = EditorPrefs.GetBool("shadowEnabled", false);
+                shadowSettings.Color = LoadColor("shadowColor", new Color(0f, 0f, 0f, 0.5f));
+                shadowSettings.Offset = LoadVector2("shadowOffset", new Vector2(0.05f, -0.05f));
+                shadowSettings.Scale = EditorPrefs.GetFloat("shadowScale", 0.95f);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to load settings: {e.Message}");
+            }
+        }
+
+        private void LoadCurrentPreset()
+        {
+            try
+            {
+                string currentPresetName = _presetManager?.GetCurrentPresetName();
+                if (!string.IsNullOrEmpty(currentPresetName))
+                {
+                    var preset = _presetManager.LoadPreset(currentPresetName);
+                    if (preset != null)
+                    {
+                        ApplyPreset(preset);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to load current preset: {e.Message}");
+            }
         }
 
         private void SaveSettings()
         {
-            EditorPrefs.SetString(nameof(directory), directory);
-            EditorPrefs.SetInt("textureSize", textureSettings.Size);
-            EditorPrefs.SetFloat("padding", cameraSettings.Padding);
-            EditorPrefs.SetBool("showHelpBoxes", _showHelpBoxes);
-            EditorPrefs.SetInt("compression", (int)textureSettings.Compression);
-            EditorPrefs.SetInt("filterMode", (int)textureSettings.FilterMode);
-            EditorPrefs.SetInt("anisoLevel", textureSettings.AnisoLevel);
-            
-            SaveVector3("cameraRotation", cameraSettings.Rotation);
-            
-            EditorPrefs.SetBool("shadowEnabled", shadowSettings.Enabled);
-            SaveColor("shadowColor", shadowSettings.Color);
-            SaveVector2("shadowOffset", shadowSettings.Offset);
-            EditorPrefs.SetFloat("shadowScale", shadowSettings.Scale);
+            try
+            {
+                EditorPrefs.SetString(nameof(directory), directory);
+                EditorPrefs.SetString("presetsFolder", presetsFolder);
+                EditorPrefs.SetInt("textureSize", textureSettings.Size);
+                EditorPrefs.SetFloat("padding", cameraSettings.Padding);
+                EditorPrefs.SetBool("showHelpBoxes", _showHelpBoxes);
+                EditorPrefs.SetInt("compression", (int)textureSettings.Compression);
+                EditorPrefs.SetInt("filterMode", (int)textureSettings.FilterMode);
+                EditorPrefs.SetInt("anisoLevel", textureSettings.AnisoLevel);
+                
+                SaveVector3("cameraRotation", cameraSettings.Rotation);
+                
+                EditorPrefs.SetInt("lightType", (int)lightSettings.Type);
+                SaveVector3("directionalRotation", lightSettings.DirectionalRotation);
+                SaveColor("directionalColor", lightSettings.DirectionalColor);
+                EditorPrefs.SetFloat("directionalIntensity", lightSettings.DirectionalIntensity);
+                
+                for (int i = 0; i < lightSettings.PointLights.Length; i++)
+                {
+                    SaveVector3($"pointLight{i}Position", lightSettings.PointLights[i].Position);
+                    SaveColor($"pointLight{i}Color", lightSettings.PointLights[i].Color);
+                    EditorPrefs.SetFloat($"pointLight{i}Intensity", lightSettings.PointLights[i].Intensity);
+                }
+                
+                EditorPrefs.SetBool("shadowEnabled", shadowSettings.Enabled);
+                SaveColor("shadowColor", shadowSettings.Color);
+                SaveVector2("shadowOffset", shadowSettings.Offset);
+                EditorPrefs.SetFloat("shadowScale", shadowSettings.Scale);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to save settings: {e.Message}");
+            }
         }
 
         private Color LoadColor(string key, Color defaultValue)
@@ -142,403 +292,194 @@ namespace NeonImperium.IconsCreation
 
         private void OnGUI()
         {
-            if (_styleManager == null)
+            // Блокировка интерфейса в Play Mode
+            if (EditorApplication.isPlaying)
             {
-                _styleManager = new EditorStyleManager();
+                DrawPlayModeBlockedMessage();
+                return;
             }
 
-            _styleManager.InitializeStyles();
-            
+            // Проверка инициализации сервисов
+            if (_styleManager == null) 
+                _styleManager = new EditorStyleManager();
+
+            if (_presetManager == null)
+                _presetManager = new PresetManager(_iconCreator, presetsFolder);
+
             try
             {
+                _styleManager.InitializeStyles();
                 _styleManager.UpdateStyles(new Color(0.2f, 0.6f, 1f));
+                
+                using (var scroll = new GUILayout.ScrollViewScope(_scrollPosition))
+                {
+                    _scrollPosition = scroll.scrollPosition;
+                    
+                    DrawHeader();
+                    DisplaySettingsDrawer.Draw(ref _showHelpBoxes, _styleManager);
+                    PresetDrawer.Draw(ref _showPresetSettings, _presetManager, ref presetsFolder, textureSettings, cameraSettings, 
+                        lightSettings, shadowSettings, directory, targets, _showHelpBoxes, _styleManager);
+                    SpawnSettingsDrawer.Draw(ref _showSpawnSettings, ref directory, textureSettings, cameraSettings, _showHelpBoxes, _styleManager);
+                    LightSettingsDrawer.Draw(ref _showLightSettings, lightSettings, _showHelpBoxes, _styleManager);
+                    ShadowSettingsDrawer.Draw(ref _showShadowSettings, shadowSettings, _showHelpBoxes, _styleManager);
+                    SpriteSettingsDrawer.Draw(ref _showSpriteSettings, textureSettings, _showHelpBoxes, _styleManager);
+                    ObjectsSettingsDrawer.Draw(ref _showObjectsSettings, targets, _showHelpBoxes, _styleManager, new SerializedObject(this));
+                    PreviewDrawer.Draw(ref _showPreview, ref _previewScrollPosition, _iconCreator.CameraPreviews, _data, HasValidTargets, TargetCount, _showHelpBoxes, UpdateIconCreator, _styleManager);
+                    SettingsDrawers.ActionButtonsDrawer.Draw(targets, directory, HasValidTargets, CreateIcons, UpdateIconCreator);
+                }
+
+                if (GUI.changed) 
+                    UpdateIconCreator();
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"Failed to update styles: {e.Message}");
+                Debug.LogError($"Error in Icons Creator GUI: {e.Message}");
+                EditorGUILayout.HelpBox($"Произошла ошибка: {e.Message}", MessageType.Error);
+            }
+        }
+
+        private void DrawPlayModeBlockedMessage()
+        {
+            EditorGUILayout.BeginVertical("box");
+            
+            var warningStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 16,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = Color.yellow }
+            };
+            
+            EditorGUILayout.Space(20);
+            EditorGUILayout.LabelField("🚫 Создатель иконок недоступен", warningStyle);
+            EditorGUILayout.Space(10);
+            
+            var messageStyle = new GUIStyle(EditorStyles.label)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                wordWrap = true
+            };
+            
+            EditorGUILayout.LabelField("Инструмент отключен во время Play Mode для предотвращения конфликтов со сценой.", messageStyle);
+            EditorGUILayout.LabelField("Пожалуйста, выйдите из Play Mode для использования создателя иконок.", messageStyle);
+            
+            EditorGUILayout.Space(20);
+            
+            if (GUILayout.Button("Выйти из Play Mode", GUILayout.Height(30)))
+            {
+                EditorApplication.isPlaying = false;
             }
             
-            using (var scroll = new GUILayout.ScrollViewScope(_scrollPosition))
-            {
-                _scrollPosition = scroll.scrollPosition;
-                
-                DrawHeader();
-                DrawDisplaySettings();
-                DrawSpawnSettings();
-                DrawShadowSettings();
-                DrawSpriteSettings();
-                DrawObjectsSettings();
-                DrawPreviewSection();
-                DrawActionButtons();
-            }
+            EditorGUILayout.Space(20);
+            EditorGUILayout.EndVertical();
         }
 
         private void DrawHeader()
         {
             EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.LabelField("🖼️ Создатель иконок", GetHeaderStyle());
-            EditorGUILayout.LabelField("Профессиональный инструмент для создания иконок", GetCenteredLabelStyle());
+            EditorGUILayout.LabelField("🖼️ Создатель иконок", _styleManager?.HeaderStyle ?? EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Профессиональный инструмент для создания иконок", _styleManager?.CenteredLabelStyle ?? EditorStyles.label);
             EditorGUILayout.EndVertical();
             EditorGUILayout.Space(10f);
         }
 
-        private void DrawDisplaySettings()
-        {
-            EditorGUILayout.BeginVertical("box");
-            _showHelpBoxes = GUILayout.Toggle(_showHelpBoxes, 
-                new GUIContent(" 📚 Показать подсказки", "Включает/выключает подробные подсказки"), 
-                EditorStyles.miniButton, GUILayout.Height(22));
-            
-            if (_showHelpBoxes)
-                DrawHelpBox("💡 <b>Режим подсказок активен</b>. Наводите курсор на названия настроек для получения информации.");
-            
-            EditorGUILayout.EndVertical();
-            EditorGUILayout.Space(4f);
-        }
-
-        private void DrawSpawnSettings()
-        {
-            EditorGUILayout.BeginVertical("box");
-            _showSpawnSettings = EditorGUILayout.Foldout(_showSpawnSettings, "⚙️ Настройки иконки", GetFoldoutStyle());
-            
-            if (_showSpawnSettings)
-            {
-                EditorGUI.indentLevel++;
-                
-                DrawDirectoryField();
-                DrawSizeSlider();
-                DrawPaddingSlider();
-                DrawRotationField();
-                DrawShadowsToggle();
-                
-                EditorGUI.indentLevel--;
-            }
-            EditorGUILayout.EndVertical();
-            EditorGUILayout.Space(4f);
-        }
-
-        private void DrawShadowSettings()
-        {
-            EditorGUILayout.BeginVertical("box");
-            _showShadowSettings = EditorGUILayout.Foldout(_showShadowSettings, "👥 Настройки тени", GetFoldoutStyle());
-            
-            if (_showShadowSettings)
-            {
-                EditorGUI.indentLevel++;
-                
-                shadowSettings.Enabled = EditorGUILayout.Toggle(
-                    new GUIContent("Включить тень", "Добавляет тень к иконке"), 
-                    shadowSettings.Enabled);
-
-                if (shadowSettings.Enabled)
-                {
-                    shadowSettings.Color = EditorGUILayout.ColorField(
-                        new GUIContent("Цвет тени", "Цвет и прозрачность тени"), 
-                        shadowSettings.Color);
-
-                    EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField(new GUIContent("Смещение тени", "Смещение тени относительно иконки"), GUILayout.Width(120));
-                    shadowSettings.Offset = EditorGUILayout.Vector2Field("", shadowSettings.Offset);
-                    EditorGUILayout.EndHorizontal();
-
-                    shadowSettings.Scale = EditorGUILayout.Slider(
-                        new GUIContent("Масштаб тени", "Размер тени относительно иконки"), 
-                        shadowSettings.Scale, 0.5f, 1.2f);
-
-                    if (_showHelpBoxes)
-                        DrawHelpBox("💡 <b>Тень добавляется</b> к текстуре иконки и не зависит от освещения сцены");
-                }
-
-                EditorGUI.indentLevel--;
-            }
-            EditorGUILayout.EndVertical();
-            EditorGUILayout.Space(4f);
-        }
-
-        private void DrawDirectoryField()
-        {
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(new GUIContent("Папка сохранения", "Папка для сохранения созданных иконок"), GUILayout.Width(120));
-            directory = EditorGUILayout.TextField(directory);
-            if (GUILayout.Button("Обзор", GUILayout.Width(60)))
-            {
-                string path = EditorUtility.SaveFolderPanel("Выберите папку для иконок", "Assets", "");
-                if (!string.IsNullOrEmpty(path) && path.StartsWith(Application.dataPath))
-                    directory = path.Substring(Application.dataPath.Length + 1);
-            }
-            EditorGUILayout.EndHorizontal();
-
-            if (_showHelpBoxes)
-                DrawHelpBox("💡 <b>Папка должна находиться внутри Assets</b>");
-        }
-
-        private void DrawSizeSlider()
-        {
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(new GUIContent("Размер иконки", "Размер иконки в пикселях"), GUILayout.Width(120));
-            textureSettings.Size = EditorGUILayout.IntSlider(textureSettings.Size, 32, 2048);
-            EditorGUILayout.LabelField($"{textureSettings.Size}px", GUILayout.Width(40));
-            EditorGUILayout.EndHorizontal();
-
-            if (_showHelpBoxes)
-                DrawHelpBox("💡 <b>Рекомендуемые размеры:</b> 512px - стандарт, 256px - для UI, 1024px - HD");
-        }
-
-        private void DrawPaddingSlider()
-        {
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(new GUIContent("Внутренний отступ", "Отступ от краев объекта"), GUILayout.Width(120));
-            cameraSettings.Padding = EditorGUILayout.Slider(cameraSettings.Padding, 0f, 0.5f);
-            EditorGUILayout.LabelField($"{cameraSettings.Padding:P0}", GUILayout.Width(40));
-            EditorGUILayout.EndHorizontal();
-
-            if (_showHelpBoxes)
-                DrawHelpBox("💡 <b>Отступ помогает</b> предотвратить обрезку краев объекта");
-        }
-
-        private void DrawRotationField()
-        {
-            EditorGUILayout.LabelField("Поворот камеры");
-            cameraSettings.Rotation = EditorGUILayout.Vector3Field("", cameraSettings.Rotation);
-
-            if (_showHelpBoxes)
-                DrawHelpBox("💡 <b>Стандартные значения:</b> (45, -45, 0) - изометрический вид");
-        }
-
-        private void DrawShadowsToggle()
-        {
-            cameraSettings.RenderShadows = EditorGUILayout.Toggle(
-                new GUIContent("Отображать тени", "Включает отображение теней на иконке"), 
-                cameraSettings.RenderShadows);
-
-            if (_showHelpBoxes)
-                DrawHelpBox("💡 <b>Тени добавляют</b> глубину и реализм, но могут увеличить время рендера");
-        }
-
-        private void DrawSpriteSettings()
-        {
-            EditorGUILayout.BeginVertical("box");
-            _showSpriteSettings = EditorGUILayout.Foldout(_showSpriteSettings, "🖌️ Настройки спрайта", GetFoldoutStyle());
-            
-            if (_showSpriteSettings)
-            {
-                EditorGUI.indentLevel++;
-
-                textureSettings.Compression = (TextureImporterCompression)EditorGUILayout.EnumPopup(
-                    new GUIContent("Сжатие", "Настройка сжатия текстуры"), textureSettings.Compression);
-                if (_showHelpBoxes) DrawHelpBox("💡 <b>CompressedHQ</b> - высокое качество, <b>Compressed</b> - баланс, <b>Uncompressed</b> - без сжатия");
-
-                EditorGUILayout.Space(5f);
-
-                textureSettings.FilterMode = (FilterMode)EditorGUILayout.EnumPopup(
-                    new GUIContent("Filter Mode", "Метод фильтрации текстуры"), textureSettings.FilterMode);
-                if (_showHelpBoxes) DrawHelpBox("💡 <b>Point</b> - пиксельный вид, <b>Bilinear</b> - сглаживание, <b>Trilinear</b> - лучшее сглаживание");
-
-                EditorGUILayout.Space(5f);
-
-                textureSettings.AnisoLevel = EditorGUILayout.IntSlider(
-                    new GUIContent("Aniso Level", "Уровень анизотропной фильтрации"), textureSettings.AnisoLevel, 0, 16);
-                if (_showHelpBoxes) DrawHelpBox("💡 <b>Улучшает качество</b> текстур под углом. 0 - отключено");
-
-                EditorGUI.indentLevel--;
-            }
-            EditorGUILayout.EndVertical();
-            EditorGUILayout.Space(4f);
-        }
-
-        private void DrawObjectsSettings()
-        {
-            EditorGUILayout.BeginVertical("box");
-            _showObjectsSettings = EditorGUILayout.Foldout(_showObjectsSettings, "🎯 Объекты для иконок", GetFoldoutStyle());
-            
-            if (_showObjectsSettings)
-            {
-                EditorGUI.indentLevel++;
-
-                SerializedObject serializedObject = new SerializedObject(this);
-                SerializedProperty targetsProperty = serializedObject.FindProperty("targets");
-                EditorGUILayout.PropertyField(targetsProperty, new GUIContent("Список объектов", "Добавьте объекты для создания иконок"), true);
-                serializedObject.ApplyModifiedProperties();
-
-                foreach (var target in targets.Where(t => t != null).OfType<GameObject>())
-                {
-                    if (!target.HasVisibleMesh())
-                        EditorGUILayout.HelpBox($"Объект '{target.name}' не имеет видимых мешей!", MessageType.Warning);
-                }
-
-                if (_showHelpBoxes)
-                    DrawHelpBox("💡 <b>Можно добавлять:</b> префабы, объекты на сцене, папки с префабами");
-
-                EditorGUI.indentLevel--;
-            }
-            EditorGUILayout.EndVertical();
-            EditorGUILayout.Space(4f);
-        }
-
-        private void DrawPreviewSection()
-        {
-            if (!HasValidTargets) return;
-
-            EditorGUILayout.BeginVertical("box");
-            _showPreview = EditorGUILayout.Foldout(_showPreview, $"👁️ Предпросмотр всех моделей ({targets.ExtractAllGameObjects().Count(g => g.HasVisibleMesh())})", GetFoldoutStyle());
-            
-            if (_showPreview)
-            {
-                EditorGUI.indentLevel++;
-
-                var previews = _iconCreator.CameraPreviews;
-                if (previews != null && previews.Length > 0 && previews[0] != null)
-                {
-                    int previewCount = previews.Length;
-                    int rows = Mathf.CeilToInt((float)previewCount / MAX_PREVIEWS_PER_ROW);
-                    float totalHeight = rows * PREVIEW_SIZE + (rows - 1) * 5f + 40f;
-
-                    _previewScrollPosition = EditorGUILayout.BeginScrollView(_previewScrollPosition, GUILayout.Height(Mathf.Min(totalHeight, 400f)));
-                    
-                    for (int i = 0; i < previewCount; i++)
-                    {
-                        if (previews[i] == null) continue;
-
-                        int row = i / MAX_PREVIEWS_PER_ROW;
-                        int col = i % MAX_PREVIEWS_PER_ROW;
-
-                        if (col == 0) EditorGUILayout.BeginHorizontal();
-
-                        EditorGUILayout.BeginVertical(GUILayout.Width(PREVIEW_SIZE), GUILayout.Height(PREVIEW_SIZE + 25f));
-                        
-                        if (_data != null && i < _data.Targets.Length)
-                        {
-                            EditorGUILayout.LabelField(_data.Targets[i].name, EditorStyles.miniLabel, GUILayout.Width(PREVIEW_SIZE));
-                        }
-                        else
-                        {
-                            EditorGUILayout.LabelField($"Объект {i + 1}", EditorStyles.miniLabel, GUILayout.Width(PREVIEW_SIZE));
-                        }
-
-                        Rect previewRect = GUILayoutUtility.GetRect(PREVIEW_SIZE, PREVIEW_SIZE);
-                        GUI.Box(new Rect(previewRect.x - 1, previewRect.y - 1, previewRect.width + 2, previewRect.height + 2), "");
-                        GUI.DrawTexture(previewRect, previews[i], ScaleMode.ScaleToFit);
-                        
-                        EditorGUILayout.EndVertical();
-
-                        if (col < MAX_PREVIEWS_PER_ROW - 1 && i < previewCount - 1)
-                        {
-                            GUILayout.Space(5f);
-                        }
-
-                        if (col == MAX_PREVIEWS_PER_ROW - 1 || i == previewCount - 1)
-                        {
-                            EditorGUILayout.EndHorizontal();
-                            if (i < previewCount - 1) GUILayout.Space(5f);
-                        }
-                    }
-                    
-                    EditorGUILayout.EndScrollView();
-                }
-                else
-                {
-                    EditorGUILayout.HelpBox("Предпросмотр будет отображен после обновления настроек", MessageType.Info);
-                    
-                    if (GUILayout.Button("Обновить предпросмотр"))
-                    {
-                        UpdateIconCreator();
-                    }
-                }
-
-                if (_showHelpBoxes)
-                    DrawHelpBox("💡 <b>Предпросмотр обновляется</b> автоматически при изменении настроек");
-
-                EditorGUI.indentLevel--;
-            }
-            EditorGUILayout.EndVertical();
-            EditorGUILayout.Space(4f);
-
-            if (GUI.changed) UpdateIconCreator();
-        }
-
-        private void DrawActionButtons()
-        {
-            EditorGUILayout.BeginVertical("box");
-
-            if (!HasValidTargets)
-            {
-                EditorGUILayout.HelpBox("Добавьте хотя бы один объект для создания иконок", MessageType.Warning);
-            }
-            else
-            {
-                int targetCount = targets.ExtractAllGameObjects().Count(g => g.HasVisibleMesh());
-                string buttonText = targetCount > 1 ? $"Создать {targetCount} иконок" : "Создать иконку";
-
-                var buttonStyle = new GUIStyle(GUI.skin.button)
-                {
-                    fixedHeight = 35,
-                    fontSize = 14,
-                    fontStyle = FontStyle.Bold,
-                    alignment = TextAnchor.MiddleCenter
-                };
-
-                if (GUILayout.Button($"🖼️ {buttonText}", buttonStyle))
-                    CreateIcons();
-
-                if (_showHelpBoxes)
-                    DrawHelpBox($"💡 <b>Будет создано:</b> {targetCount} иконок в папке {directory}");
-
-                EditorGUILayout.Space(5f);
-                if (GUILayout.Button("🔄 Обновить предпросмотр всех моделей"))
-                {
-                    UpdateIconCreator();
-                }
-            }
-
-            EditorGUILayout.EndVertical();
-        }
-
         private IconsCreatorData _data;
-
-        private GUIStyle GetHeaderStyle()
-        {
-            return _styleManager?.HeaderStyle ?? EditorStyles.boldLabel;
-        }
-
-        private GUIStyle GetFoldoutStyle()
-        {
-            return _styleManager?.FoldoutStyle ?? EditorStyles.foldout;
-        }
-
-        private GUIStyle GetCenteredLabelStyle()
-        {
-            return _styleManager?.CenteredLabelStyle ?? EditorStyles.label;
-        }
-
-        private void DrawHelpBox(string message)
-        {
-            var helpBoxStyle = _styleManager?.HelpBoxStyle ?? EditorStyles.helpBox;
-            var miniLabelStyle = _styleManager?.MiniLabelStyle ?? EditorStyles.miniLabel;
-
-            EditorGUILayout.BeginVertical(helpBoxStyle);
-            EditorGUILayout.LabelField(message, miniLabelStyle);
-            EditorGUILayout.EndVertical();
-            EditorGUILayout.Space(3f);
-        }
 
         private void UpdateIconCreator()
         {
             if (!HasValidTargets) return;
 
-            _data = new IconsCreatorData(textureSettings, cameraSettings, shadowSettings, directory, targets);
-            _iconCreator.SetData(_data);
-            Repaint();
+            try
+            {
+                _data = new IconsCreatorData(textureSettings, cameraSettings, lightSettings, shadowSettings, directory, targets);
+                _iconCreator.SetData(_data);
+                Repaint();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to update icon creator: {e.Message}");
+            }
         }
 
         private void CreateIcons()
         {
             if (!HasValidTargets) return;
-            UpdateIconCreator();
-            _iconCreator.CreateIcons();
-            AssetDatabase.Refresh();
             
-            EditorUtility.DisplayDialog("Иконки созданы", 
-                $"Успешно создано {_data.Targets.Length} иконок в папке {directory}", "OK");
+            try
+            {
+                UpdateIconCreator();
+                _iconCreator.CreateIcons();
+                AssetDatabase.Refresh();
+                
+                EditorUtility.DisplayDialog("Иконки созданы", 
+                    $"Успешно создано {_data.Targets.Length} иконок в папке {directory}", "OK");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to create icons: {e.Message}");
+                EditorUtility.DisplayDialog("Ошибка", 
+                    $"Не удалось создать иконки: {e.Message}", "OK");
+            }
+        }
+
+        public void ApplyPreset(PresetData preset)
+        {
+            try
+            {
+                // Копируем данные из пресета в текущие настройки
+                CopyTextureSettings(preset.textureSettings, textureSettings);
+                CopyCameraSettings(preset.cameraSettings, cameraSettings);
+                CopyLightSettings(preset.lightSettings, lightSettings);
+                CopyShadowSettings(preset.shadowSettings, shadowSettings);
+                directory = preset.directory;
+                
+                // Сохраняем имя текущего пресета
+                EditorPrefs.SetString("currentPresetName", preset.presetName);
+                
+                UpdateIconCreator();
+                Repaint();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to apply preset: {e.Message}");
+            }
+        }
+
+        private void CopyTextureSettings(TextureSettings source, TextureSettings destination)
+        {
+            destination.Compression = source.Compression;
+            destination.FilterMode = source.FilterMode;
+            destination.AnisoLevel = source.AnisoLevel;
+            destination.Size = source.Size;
+        }
+
+        private void CopyCameraSettings(CameraSettings source, CameraSettings destination)
+        {
+            destination.Rotation = source.Rotation;
+            destination.Padding = source.Padding;
+            destination.RenderShadows = source.RenderShadows;
+        }
+
+        private void CopyLightSettings(LightSettings source, LightSettings destination)
+        {
+            destination.Type = source.Type;
+            destination.DirectionalRotation = source.DirectionalRotation;
+            destination.DirectionalColor = source.DirectionalColor;
+            destination.DirectionalIntensity = source.DirectionalIntensity;
+
+            for (int i = 0; i < source.PointLights.Length; i++)
+            {
+                destination.PointLights[i].Position = source.PointLights[i].Position;
+                destination.PointLights[i].Color = source.PointLights[i].Color;
+                destination.PointLights[i].Intensity = source.PointLights[i].Intensity;
+            }
+        }
+
+        private void CopyShadowSettings(ShadowSettings source, ShadowSettings destination)
+        {
+            destination.Enabled = source.Enabled;
+            destination.Color = source.Color;
+            destination.Offset = source.Offset;
+            destination.Scale = source.Scale;
         }
     }
 }

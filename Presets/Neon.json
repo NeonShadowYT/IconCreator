@@ -1,0 +1,78 @@
+{
+    "presetName": "Neon",
+    "textureSettings": {
+        "Compression": 2,
+        "FilterMode": 0,
+        "AnisoLevel": 0,
+        "Size": 256
+    },
+    "cameraSettings": {
+        "Rotation": {
+            "x": 15.0,
+            "y": -35.0,
+            "z": 15.0
+        },
+        "Padding": 0.20000000298023225,
+        "RenderShadows": true
+    },
+    "lightSettings": {
+        "Type": 2,
+        "DirectionalRotation": {
+            "x": 50.0,
+            "y": -30.0,
+            "z": 0.0
+        },
+        "DirectionalColor": {
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 1.0
+        },
+        "DirectionalIntensity": 1.0,
+        "PointLights": [
+            {
+                "Position": {
+                    "x": 1.0,
+                    "y": 1.25,
+                    "z": -0.5
+                },
+                "Color": {
+                    "r": 0.0,
+                    "g": 0.5858883857727051,
+                    "b": 1.0,
+                    "a": 1.0
+                },
+                "Intensity": 2.0
+            },
+            {
+                "Position": {
+                    "x": -1.0,
+                    "y": -0.25,
+                    "z": -0.5
+                },
+                "Color": {
+                    "r": 0.15423202514648438,
+                    "g": 0.0,
+                    "b": 1.0,
+                    "a": 1.0
+                },
+                "Intensity": 2.0
+            }
+        ]
+    },
+    "shadowSettings": {
+        "Enabled": true,
+        "Color": {
+            "r": 0.0,
+            "g": 0.0,
+            "b": 0.0,
+            "a": 0.250980406999588
+        },
+        "Offset": {
+            "x": 0.10000000149011612,
+            "y": -0.10000000149011612
+        },
+        "Scale": 0.949999988079071
+    },
+    "directory": "/Starve Neon/Textures/Icons/"
+}
