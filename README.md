@@ -1,8 +1,10 @@
 # 🖼️ Icons Creator for Unity
-
-![Unity](https://img.shields.io/badge/Unity-2022.3+-black.svg?style=for-the-badge&logo=unity)
-![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)
-![Version](https://img.shields.io/badge/Version-2.0-blue.svg?style=for-the-badge)
+<a href="https://github.com/NeonShadowYT/IconCreator/stargazers"><img src="https://img.shields.io/github/stars/NeonShadowYT/IconCreator?style=flat-square&logo=github&color=FFC107" alt="GitHub Stars"></a>
+<a href="https://github.com/NeonShadowYT?tab=followers"><img src="https://img.shields.io/github/followers/NeonShadowYT?style=flat-square&logo=github&label=Followers&color=282c34" alt="GitHub Followers"></a>
+<a href="https://github.com/NeonShadowYT/IconCreator/commits/main"><img src="https://img.shields.io/github/last-commit/NeonShadowYT/IconCreator?style=flat-square&logo=github&color=blueviolet" alt="Last Commit"></a>
+<a href="https://github.com/NeonShadowYT/IconCreator/releases"><img src="https://img.shields.io/github/v/release/NeonShadowYT/IconCreator?style=flat-square" alt="Release"></a>
+<a href="https://unity.com/"><img src="https://img.shields.io/badge/Unity-2022.3+-2296F3.svg?style=flat-square&logo=unity" alt="Unity Version"></a>
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License: MIT"></a>
 
 **Профессиональный инструмент для создания высококачественных иконок из 3D моделей в редакторе Unity**  
 *Автоматизируйте процесс создания иконок с продвинутыми настройками освещения, теней и камеры*
