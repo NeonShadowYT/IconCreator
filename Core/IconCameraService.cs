@@ -8,8 +8,6 @@ namespace NeonImperium.IconsCreation
 {
     public class IconCameraService
     {
-        private const string CAMERA_TAG = "IconsCreationCamera";
-        
         private Camera _camera;
         private GameObject _targetObject;
         private Bounds _targetBounds;
@@ -17,51 +15,63 @@ namespace NeonImperium.IconsCreation
         private TextureSettings _textureSettings;
         private CameraSettings _cameraSettings;
         private ShadowSettings _shadowSettings;
+        private string _cameraTag;
         
         private float _distanceToTarget = 10f;
         private Vector3 CameraOffset => -_camera.transform.forward * _distanceToTarget;
+        private bool _cameraWasActive;
 
-        public void Initialize(TextureSettings textureSettings, CameraSettings cameraSettings, ShadowSettings shadowSettings)
+        public void Initialize(TextureSettings textureSettings, CameraSettings cameraSettings, ShadowSettings shadowSettings, string cameraTag)
         {
             _textureSettings = textureSettings;
             _cameraSettings = cameraSettings;
             _shadowSettings = shadowSettings;
+            _cameraTag = cameraTag;
         }
 
-        public void SetupForTarget(GameObject target)
+        public bool SetupForTarget(GameObject target)
         {
+            if (target == null) return false;
+            
             _targetObject = target;
-            RetrieveCamera();
-            if (_camera == null)
-            {
-                Debug.LogError("Camera not found for icon creation");
-                return;
-            }
+            
+            if (!RetrieveCamera())
+                return false;
+                
             ConfigureCamera();
             AdjustCamera();
+            return true;
         }
 
-        private void RetrieveCamera()
+        private bool RetrieveCamera()
         {
-            if (EditorApplication.isPlaying) return;
+            if (EditorApplication.isPlaying) return false;
 
             Scene activeScene = EditorSceneManager.GetActiveScene();
 
-            if (_camera && _camera.scene == activeScene && _camera.gameObject.CompareTag(CAMERA_TAG))
-                return;
+            if (_camera && _camera.scene == activeScene && _camera.gameObject.CompareTag(_cameraTag))
+                return true;
 
+            _camera = null;
             foreach (GameObject rootObject in activeScene.GetRootGameObjects())
             {
                 Camera camera = rootObject.GetComponentInChildren<Camera>();
-                if (camera && camera.CompareTag(CAMERA_TAG))
+                if (camera && camera.CompareTag(_cameraTag))
                 {
                     _camera = camera;
                     break;
                 }
             }
 
-            if (!_camera)
-                Debug.LogWarning($"No camera tagged '{CAMERA_TAG}' found!");
+            if (_camera == null)
+            {
+                GameObject cameraGO = new GameObject("IconsCreator_Camera");
+                _camera = cameraGO.AddComponent<Camera>();
+                _camera.tag = _cameraTag;
+                cameraGO.SetActive(false);
+            }
+            
+            return _camera != null;
         }
 
         private void ConfigureCamera()
@@ -71,6 +81,9 @@ namespace NeonImperium.IconsCreation
             _camera.clearFlags = CameraClearFlags.SolidColor;
             _camera.backgroundColor = Color.clear;
             _camera.orthographic = true;
+            _camera.orthographicSize = 5f;
+            _camera.nearClipPlane = 0.01f;
+            _camera.farClipPlane = 1000f;
         }
 
         private void AdjustCamera()
@@ -93,7 +106,7 @@ namespace NeonImperium.IconsCreation
         private void SetCameraPosition()
         {
             if (_camera == null) return;
-            _distanceToTarget = _targetBounds.size.z / 2 + 10;
+            _distanceToTarget = Mathf.Max(_targetBounds.size.z / 2 + 10, 5f);
             Vector3 targetCenter = _targetBounds.center;
             _camera.transform.position = targetCenter + CameraOffset;
         }
@@ -108,20 +121,13 @@ namespace NeonImperium.IconsCreation
             Vector2 max2D = new Vector2(max.x, max.y);
             Vector2 distance2D = (max2D - min2D).Abs();
 
-            _camera.orthographicSize = distance2D.BiggestComponentValue() * 0.5f / (1 - _cameraSettings.Padding);
+            _camera.orthographicSize = Mathf.Max(distance2D.BiggestComponentValue() * 0.5f / (1 - Mathf.Clamp01(_cameraSettings.Padding)), 0.1f);
         }
 
         public Texture2D CaptureView()
         {
-            if (_camera == null)
+            if (_camera == null || _textureSettings.Size < 1)
             {
-                Debug.LogError("Cannot capture view: camera is null");
-                return CreateFallbackTexture();
-            }
-
-            if (_textureSettings.Size < 1)
-            {
-                Debug.LogError($"Invalid texture size: {_textureSettings.Size}");
                 return CreateFallbackTexture();
             }
 
@@ -130,43 +136,43 @@ namespace NeonImperium.IconsCreation
 
             try
             {
-                tempRT = RenderTexture.GetTemporary(_textureSettings.Size, _textureSettings.Size, 24);
-                _camera.targetTexture = tempRT;
+                _cameraWasActive = _camera.gameObject.activeSelf;
+                _camera.gameObject.SetActive(true);
+                
+                tempRT = RenderTexture.GetTemporary(_textureSettings.Size, _textureSettings.Size, 24, RenderTextureFormat.ARGB32);
+                if (tempRT == null) return CreateFallbackTexture();
+                
+                RenderTexture previousRT = _camera.targetTexture;
                 RenderTexture.active = tempRT;
+                _camera.targetTexture = tempRT;
 
-                // Безопасный рендеринг с обработкой исключений
-                SafeCameraRender();
+                _camera.Render();
 
                 image = new Texture2D(_textureSettings.Size, _textureSettings.Size, TextureFormat.RGBA32, false);
                 image.ReadPixels(new Rect(0, 0, _textureSettings.Size, _textureSettings.Size), 0, 0);
                 image.Apply();
                 
-                // Apply shadow if enabled
                 if (_shadowSettings.Enabled && image != null)
                 {
-                    var shadowedImage = ApplyShadowToTexture(image);
+                    Texture2D shadowedImage = ApplyShadowToTexture(image);
                     if (shadowedImage != null)
                     {
                         UnityEngine.Object.DestroyImmediate(image);
                         image = shadowedImage;
                     }
                 }
+                
+                _camera.targetTexture = previousRT;
+                _camera.gameObject.SetActive(_cameraWasActive);
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"Failed to capture camera view: {e.Message}");
-                if (image != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(image);
-                    image = null;
-                }
+                Debug.LogError($"Failed to capture view: {e.Message}");
+                if (image != null) UnityEngine.Object.DestroyImmediate(image);
                 image = CreateFallbackTexture();
             }
             finally
             {
-                // Всегда очищаем ресурсы
-                if (_camera != null)
-                    _camera.targetTexture = null;
                 RenderTexture.active = null;
                 if (tempRT != null)
                     RenderTexture.ReleaseTemporary(tempRT);
@@ -175,35 +181,17 @@ namespace NeonImperium.IconsCreation
             return image;
         }
 
-        private void SafeCameraRender()
-        {
-            if (_camera == null) return;
-
-            try
-            {
-                // Пытаемся рендерить стандартным способом
-                _camera.Render();
-            }
-            catch (System.NullReferenceException)
-            {
-                // Игнорируем NullReferenceException от внутренних компонентов Unity
-                Debug.LogWarning("Camera render caused NullReferenceException (ignored)");
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"Camera render failed: {e.Message}");
-                throw;
-            }
-        }
-
         private Texture2D CreateFallbackTexture()
         {
-            var texture = new Texture2D(64, 64, TextureFormat.RGBA32, false);
-            var colors = new Color[64 * 64];
+            Texture2D texture = new Texture2D(64, 64, TextureFormat.RGBA32, false);
+            Color[] colors = new Color[64 * 64];
+            Color fallbackColor = new Color(0.5f, 0.5f, 0.5f, 0.3f);
+            
             for (int i = 0; i < colors.Length; i++)
             {
-                colors[i] = new Color(0.5f, 0.5f, 0.5f, 0.3f);
+                colors[i] = fallbackColor;
             }
+            
             texture.SetPixels(colors);
             texture.Apply();
             return texture;
@@ -220,33 +208,28 @@ namespace NeonImperium.IconsCreation
                 
                 Texture2D resultTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
                 
-                // Calculate shadow offset in pixels
                 int offsetX = (int)(_shadowSettings.Offset.x * width);
                 int offsetY = (int)(_shadowSettings.Offset.y * height);
                 
-                // Calculate scaled dimensions for shadow
-                int shadowWidth = (int)(width * _shadowSettings.Scale);
-                int shadowHeight = (int)(height * _shadowSettings.Scale);
+                int shadowWidth = Mathf.Clamp((int)(width * _shadowSettings.Scale), 1, width);
+                int shadowHeight = Mathf.Clamp((int)(height * _shadowSettings.Scale), 1, height);
                 int shadowOffsetX = (width - shadowWidth) / 2;
                 int shadowOffsetY = (height - shadowHeight) / 2;
 
                 Color[] originalPixels = originalTexture.GetPixels();
                 Color[] resultPixels = new Color[width * height];
 
-                // First pass: draw shadow
                 for (int y = 0; y < height; y++)
                 {
                     for (int x = 0; x < width; x++)
                     {
                         int index = y * width + x;
                         
-                        // Calculate position in scaled shadow
                         int shadowX = x - shadowOffsetX - offsetX;
                         int shadowY = y - shadowOffsetY - offsetY;
                         
                         if (shadowX >= 0 && shadowX < shadowWidth && shadowY >= 0 && shadowY < shadowHeight)
                         {
-                            // Map to original texture coordinates for sampling
                             int sourceX = (int)((float)shadowX / shadowWidth * width);
                             int sourceY = (int)((float)shadowY / shadowHeight * height);
                             sourceX = Mathf.Clamp(sourceX, 0, width - 1);
@@ -255,8 +238,7 @@ namespace NeonImperium.IconsCreation
                             int sourceIndex = sourceY * width + sourceX;
                             Color sourceColor = originalPixels[sourceIndex];
                             
-                            // Use alpha from original texture for shadow shape
-                            if (sourceColor.a > 0)
+                            if (sourceColor.a > 0.01f)
                             {
                                 resultPixels[index] = _shadowSettings.Color;
                             }
@@ -264,7 +246,6 @@ namespace NeonImperium.IconsCreation
                     }
                 }
 
-                // Second pass: draw original image over shadow
                 for (int y = 0; y < height; y++)
                 {
                     for (int x = 0; x < width; x++)
@@ -273,19 +254,16 @@ namespace NeonImperium.IconsCreation
                         Color originalColor = originalPixels[index];
                         Color shadowColor = resultPixels[index];
                         
-                        if (originalColor.a > 0)
+                        if (originalColor.a > 0.01f)
                         {
-                            // Blend original over shadow
                             resultPixels[index] = Color.Lerp(shadowColor, originalColor, originalColor.a);
                         }
-                        else if (shadowColor.a > 0)
+                        else if (shadowColor.a > 0.01f)
                         {
-                            // Keep shadow where there's no original content
                             resultPixels[index] = shadowColor;
                         }
                         else
                         {
-                            // Transparent background
                             resultPixels[index] = Color.clear;
                         }
                     }
@@ -301,8 +279,18 @@ namespace NeonImperium.IconsCreation
             catch (System.Exception e)
             {
                 Debug.LogError($"Failed to apply shadow: {e.Message}");
-                return originalTexture; // Возвращаем оригинальную текстуру в случае ошибки
+                return originalTexture;
             }
+        }
+        
+        public void Cleanup()
+        {
+            if (_camera != null && _cameraWasActive)
+            {
+                _camera.gameObject.SetActive(false);
+            }
+            _camera = null;
+            _targetObject = null;
         }
     }
 }

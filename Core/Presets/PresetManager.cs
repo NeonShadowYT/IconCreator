@@ -8,11 +8,9 @@ namespace NeonImperium.IconsCreation
     public class PresetManager
     {
         private string _presetsFolder;
-        private readonly IconCreatorService _iconCreator;
 
-        public PresetManager(IconCreatorService iconCreator, string presetsFolder)
+        public PresetManager(string presetsFolder)
         {
-            _iconCreator = iconCreator;
             _presetsFolder = presetsFolder;
             EnsurePresetsFolderExists();
         }
@@ -25,31 +23,19 @@ namespace NeonImperium.IconsCreation
 
         public void SavePreset(PresetData presetData)
         {
-            if (EditorApplication.isPlaying)
-            {
-                Debug.LogWarning("Cannot save presets in Play Mode");
-                return;
-            }
+            if (EditorApplication.isPlaying) return;
 
-            try
-            {
-                string filePath = Path.Combine(_presetsFolder, $"{presetData.presetName}.json");
-                string json = JsonUtility.ToJson(presetData, true);
-                File.WriteAllText(filePath, json);
-                AssetDatabase.Refresh();
-                
-                // Сохраняем имя текущего пресета
-                EditorPrefs.SetString("currentPresetName", presetData.presetName);
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"Failed to save preset: {e.Message}");
-            }
+            string filePath = Path.Combine(_presetsFolder, $"{presetData.presetName}.json");
+            string json = JsonUtility.ToJson(presetData, true);
+            File.WriteAllText(filePath, json);
+            AssetDatabase.Refresh();
+            
+            EditorPrefs.SetString("currentPresetName", presetData.presetName);
         }
 
         public List<PresetData> LoadAllPresets()
         {
-            var presets = new List<PresetData>();
+            List<PresetData> presets = new List<PresetData>();
             
             if (!Directory.Exists(_presetsFolder))
                 return presets;
@@ -58,16 +44,9 @@ namespace NeonImperium.IconsCreation
             
             foreach (string filePath in jsonFiles)
             {
-                try
-                {
-                    string json = File.ReadAllText(filePath);
-                    PresetData preset = JsonUtility.FromJson<PresetData>(json);
-                    presets.Add(preset);
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError($"Failed to load preset from {filePath}: {e.Message}");
-                }
+                string json = File.ReadAllText(filePath);
+                PresetData preset = JsonUtility.FromJson<PresetData>(json);
+                presets.Add(preset);
             }
 
             return presets;
@@ -78,83 +57,59 @@ namespace NeonImperium.IconsCreation
             string filePath = Path.Combine(_presetsFolder, $"{presetName}.json");
             if (File.Exists(filePath))
             {
-                try
-                {
-                    string json = File.ReadAllText(filePath);
-                    return JsonUtility.FromJson<PresetData>(json);
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError($"Failed to load preset {presetName}: {e.Message}");
-                return null;
-                }
+                string json = File.ReadAllText(filePath);
+                return JsonUtility.FromJson<PresetData>(json);
             }
             return null;
         }
 
         public void DeletePreset(string presetName)
         {
-            if (EditorApplication.isPlaying)
-            {
-                Debug.LogWarning("Cannot delete presets in Play Mode");
-                return;
-            }
+            if (EditorApplication.isPlaying) return;
 
             string filePath = Path.Combine(_presetsFolder, $"{presetName}.json");
             string metaFilePath = filePath + ".meta";
             
-            try
-            {
-                if (File.Exists(filePath))
-                {
-                    File.Delete(filePath);
-                }
-                
-                if (File.Exists(metaFilePath))
-                {
-                    File.Delete(metaFilePath);
-                }
-                
-                AssetDatabase.Refresh();
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"Failed to delete preset {presetName}: {e.Message}");
-            }
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+            
+            if (File.Exists(metaFilePath))
+                File.Delete(metaFilePath);
+            
+            AssetDatabase.Refresh();
         }
 
-        public Texture2D GeneratePreviewForPreset(PresetData preset, List<Object> targets)
+        public Texture2D GeneratePreviewForPreset(PresetData preset, List<UnityEngine.Object> targets)
         {
-            if (EditorApplication.isPlaying)
-            {
-                Debug.LogWarning("Cannot generate previews in Play Mode");
-                return null;
-            }
+            if (EditorApplication.isPlaying) return null;
 
-            GameObject previewTarget = null;
+            GameObject previewTarget = GetPreviewTarget(targets);
+            if (previewTarget == null) return null;
             
             try
             {
-                previewTarget = GetPreviewTarget(targets);
-                
-                var tempData = new IconsCreatorData(
+                IconsCreatorData tempData = new IconsCreatorData(
                     preset.textureSettings,
                     preset.cameraSettings,
                     preset.lightSettings,
                     preset.shadowSettings,
                     preset.directory,
-                    new List<Object> { previewTarget }
+                    new List<UnityEngine.Object> { previewTarget },
+                    preset.cameraTag,
+                    preset.objectsLayer
                 );
 
-                _iconCreator.SetData(tempData);
+                IconCreatorService tempIconCreator = new IconCreatorService();
+                tempIconCreator.SetData(tempData);
                 
                 Texture2D preview = null;
-                var sceneService = new IconSceneService();
-                var cameraService = new IconCameraService();
+                IconSceneService sceneService = new IconSceneService();
+                IconCameraService cameraService = new IconCameraService();
                 
-                cameraService.Initialize(preset.textureSettings, preset.cameraSettings, preset.shadowSettings);
+                cameraService.Initialize(preset.textureSettings, preset.cameraSettings, preset.shadowSettings, preset.cameraTag);
                 
-                sceneService.ExecuteWithTarget(previewTarget, preset.lightSettings, preset.cameraSettings.RenderShadows, target =>
+                sceneService.ExecuteWithTarget(previewTarget, previewTarget.name, preset.lightSettings, 
+                    preset.cameraSettings.RenderShadows, preset.cameraTag, preset.objectsLayer, target =>
                 {
                     if (target != null)
                     {
@@ -163,28 +118,24 @@ namespace NeonImperium.IconsCreation
                     }
                 });
 
+                cameraService.Cleanup();
+                
                 return preview;
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"Failed to generate preview for preset {preset.presetName}: {e.Message}");
-                return null;
             }
             finally
             {
-                // Удаляем временный объект если он был создан
-                if (previewTarget != null && previewTarget.name == "PreviewCube")
+                if (previewTarget.name == "PreviewCube")
                 {
                     UnityEngine.Object.DestroyImmediate(previewTarget);
                 }
             }
         }
 
-        private GameObject GetPreviewTarget(List<Object> targets)
+        private GameObject GetPreviewTarget(List<UnityEngine.Object> targets)
         {
             if (targets != null && targets.Count > 0)
             {
-                foreach (var target in targets)
+                foreach (UnityEngine.Object target in targets)
                 {
                     if (target is GameObject gameObject && gameObject != null)
                     {
@@ -193,9 +144,9 @@ namespace NeonImperium.IconsCreation
                 }
             }
             
-            // Если нет валидных целей, создаем куб
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cube.name = "PreviewCube";
+            cube.transform.localScale = Vector3.one * 0.5f;
             return cube;
         }
 
@@ -203,17 +154,10 @@ namespace NeonImperium.IconsCreation
         {
             if (EditorApplication.isPlaying) return;
 
-            try
+            if (!Directory.Exists(_presetsFolder))
             {
-                if (!Directory.Exists(_presetsFolder))
-                {
-                    Directory.CreateDirectory(_presetsFolder);
-                    AssetDatabase.Refresh();
-                }
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"Failed to create presets folder: {e.Message}");
+                Directory.CreateDirectory(_presetsFolder);
+                AssetDatabase.Refresh();
             }
         }
 

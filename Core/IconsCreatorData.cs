@@ -14,14 +14,20 @@ namespace NeonImperium.IconsCreation
         public ShadowSettings Shadow { get; }
         public string Directory { get; }
         public GameObject[] Targets { get; }
+        public string CameraTag { get; }
+        public string ObjectsLayer { get; }
 
-        public IconsCreatorData(TextureSettings texture, CameraSettings camera, LightSettings light, ShadowSettings shadow, string directory, List<Object> targets)
+        public IconsCreatorData(TextureSettings texture, CameraSettings camera, LightSettings light, 
+                              ShadowSettings shadow, string directory, List<Object> targets, 
+                              string cameraTag, string objectsLayer)
         {
             Texture = texture;
             Camera = camera;
             Light = light;
             Shadow = shadow;
             Directory = directory;
+            CameraTag = cameraTag;
+            ObjectsLayer = objectsLayer;
             Targets = targets.ExtractAllGameObjects().Where(g => g.HasVisibleMesh()).ToArray();
         }
     }

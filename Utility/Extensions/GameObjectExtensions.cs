@@ -6,6 +6,9 @@ namespace NeonImperium.IconsCreation.Extensions
     {
         public static Bounds GetOrthographicBounds(this GameObject gameObject, Camera camera)
         {
+            if (gameObject == null || camera == null)
+                return new Bounds(Vector3.zero, Vector3.zero);
+
             Vector3 minScreenPosition = Vector3.positiveInfinity;
             Vector3 maxScreenPosition = Vector3.negativeInfinity;
 
@@ -13,10 +16,8 @@ namespace NeonImperium.IconsCreation.Extensions
             
             foreach (MeshFilter meshFilter in meshFilters)
             {
-                if (!meshFilter.sharedMesh)
-                {
+                if (!meshFilter || !meshFilter.sharedMesh)
                     continue;
-                }
                 
                 Vector3[] vertices = meshFilter.sharedMesh.vertices;
 
@@ -25,14 +26,19 @@ namespace NeonImperium.IconsCreation.Extensions
                     Vector3 wsVertexPosition = meshFilter.transform.TransformPoint(vertex);
                     Vector3 screenPosition = camera.WorldToScreenPoint(wsVertexPosition);
 
-                    for (int i = 0; i < 3; i++)
-                    {
-                        minScreenPosition[i] = Mathf.Min(minScreenPosition[i], screenPosition[i]);
-                        maxScreenPosition[i] = Mathf.Max(maxScreenPosition[i], screenPosition[i]);
-                    }
+                    minScreenPosition.x = Mathf.Min(minScreenPosition.x, screenPosition.x);
+                    minScreenPosition.y = Mathf.Min(minScreenPosition.y, screenPosition.y);
+                    minScreenPosition.z = Mathf.Min(minScreenPosition.z, screenPosition.z);
+                    
+                    maxScreenPosition.x = Mathf.Max(maxScreenPosition.x, screenPosition.x);
+                    maxScreenPosition.y = Mathf.Max(maxScreenPosition.y, screenPosition.y);
+                    maxScreenPosition.z = Mathf.Max(maxScreenPosition.z, screenPosition.z);
                 }
             }
             
+            if (minScreenPosition.x == float.PositiveInfinity)
+                return new Bounds(camera.transform.position, Vector3.zero);
+
             Vector3 min = camera.ScreenToWorldPoint(minScreenPosition);
             Vector3 max = camera.ScreenToWorldPoint(maxScreenPosition);
 
@@ -42,36 +48,22 @@ namespace NeonImperium.IconsCreation.Extensions
             return bounds;
         }
 
-
         public static bool HasVisibleMesh(this GameObject gameObject)
         {
-            bool hasVisibleMesh = false;
+            if (gameObject == null) return false;
+
             MeshFilter[] meshFilters = gameObject.GetComponentsInChildren<MeshFilter>();
             
             foreach (MeshFilter meshFilter in meshFilters)
             {
-                if (!meshFilter)
-                {
-                    continue;
-                }
-
-                bool hasMesh = meshFilter.sharedMesh;
-                if (!hasMesh)
-                {
-                    continue;
-                }
-
-                bool hasRendererForMesh = meshFilter.GetComponent<MeshRenderer>();
-                if (!hasRendererForMesh)
-                {
-                    continue;
-                }
+                if (!meshFilter) continue;
+                if (!meshFilter.sharedMesh) continue;
+                if (!meshFilter.GetComponent<MeshRenderer>()) continue;
                 
-                hasVisibleMesh = true;
-                break;
+                return true;
             }
 
-            return hasVisibleMesh;
+            return false;
         }
     }
 }

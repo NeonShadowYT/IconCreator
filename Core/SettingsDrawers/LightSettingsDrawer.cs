@@ -5,31 +5,26 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
 {
     public static class LightSettingsDrawer
     {
-        public static void Draw(ref bool showLightSettings, LightSettings lightSettings, 
-            bool showHelpBoxes, EditorStyleManager styleManager)
+        public static void Draw(ref bool showLightSettings, LightSettings lightSettings, EditorStyleManager styleManager)
         {
             EditorGUILayout.BeginVertical("box");
-            showLightSettings = EditorGUILayout.Foldout(showLightSettings, "💡 Настройки освещения", 
+            showLightSettings = EditorGUILayout.Foldout(showLightSettings, "💡 Освещение", 
                 styleManager?.FoldoutStyle ?? EditorStyles.foldout);
             
             if (showLightSettings)
             {
                 EditorGUI.indentLevel++;
                 
-                lightSettings.Type = (LightType)EditorGUILayout.EnumPopup(
-                    new GUIContent("Тип света", "Тип источника освещения"), 
-                    lightSettings.Type);
+                lightSettings.Type = (LightType)EditorGUILayout.EnumPopup(new GUIContent("Тип света", "Тип освещения: направленный или точечный"), lightSettings.Type);
 
                 if (lightSettings.Type == LightType.Directional)
                 {
-                    DrawDirectionalLightSettings(lightSettings, showHelpBoxes);
+                    DrawDirectionalLightSettings(lightSettings);
                 }
                 else if (lightSettings.Type == LightType.Point)
                 {
-                    DrawPointLightSettings(lightSettings, showHelpBoxes);
+                    DrawPointLightSettings(lightSettings);
                 }
-
-                DrawLightHelpBox(lightSettings.Type, showHelpBoxes, styleManager);
 
                 EditorGUI.indentLevel--;
             }
@@ -37,53 +32,29 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             EditorGUILayout.Space(4f);
         }
 
-        private static void DrawDirectionalLightSettings(LightSettings lightSettings, bool showHelpBoxes)
+        private static void DrawDirectionalLightSettings(LightSettings lightSettings)
         {
-            EditorGUILayout.LabelField("Поворот направленного света");
+            EditorGUILayout.LabelField(new GUIContent("Поворот", "Углы Эйлера для направления света"));
             lightSettings.DirectionalRotation = EditorGUILayout.Vector3Field("", lightSettings.DirectionalRotation);
 
-            lightSettings.DirectionalColor = EditorGUILayout.ColorField(
-                new GUIContent("Цвет света", "Цвет направленного света"), 
-                lightSettings.DirectionalColor);
+            lightSettings.DirectionalColor = EditorGUILayout.ColorField(new GUIContent("Цвет", "Цвет направленного света"), lightSettings.DirectionalColor);
 
-            lightSettings.DirectionalIntensity = EditorGUILayout.Slider(
-                new GUIContent("Интенсивность света", "Интенсивность направленного света"), 
-                lightSettings.DirectionalIntensity, 0f, 2f);
+            lightSettings.DirectionalIntensity = EditorGUILayout.Slider(new GUIContent("Интенсивность", "Яркость направленного света"), lightSettings.DirectionalIntensity, 0f, 2f);
         }
 
-        private static void DrawPointLightSettings(LightSettings lightSettings, bool showHelpBoxes)
+        private static void DrawPointLightSettings(LightSettings lightSettings)
         {
             for (int i = 0; i < lightSettings.PointLights.Length; i++)
             {
-                EditorGUILayout.LabelField($"Точечный свет {i + 1}");
+                EditorGUILayout.LabelField(new GUIContent($"Точечный свет {i + 1}", $"Параметры {i+1}-го точечного источника"));
                 EditorGUI.indentLevel++;
                 
-                lightSettings.PointLights[i].Position = EditorGUILayout.Vector3Field(
-                    new GUIContent("Позиция", "Позиция точечного света"), 
-                    lightSettings.PointLights[i].Position);
-                
-                lightSettings.PointLights[i].Color = EditorGUILayout.ColorField(
-                    new GUIContent("Цвет", "Цвет точечного света"), 
-                    lightSettings.PointLights[i].Color);
-                
-                lightSettings.PointLights[i].Intensity = EditorGUILayout.Slider(
-                    new GUIContent("Интенсивность", "Интенсивность точечного света"), 
-                    lightSettings.PointLights[i].Intensity, 0f, 2f);
+                lightSettings.PointLights[i].Position = EditorGUILayout.Vector3Field(new GUIContent("Позиция", "Позиция в локальном пространстве сцены"), lightSettings.PointLights[i].Position);
+                lightSettings.PointLights[i].Color = EditorGUILayout.ColorField(new GUIContent("Цвет", "Цвет точечного света"), lightSettings.PointLights[i].Color);
+                lightSettings.PointLights[i].Intensity = EditorGUILayout.Slider(new GUIContent("Интенсивность", "Яркость точечного света"), lightSettings.PointLights[i].Intensity, 0f, 2f);
                 
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space(5f);
-            }
-        }
-
-        private static void DrawLightHelpBox(LightType lightType, bool showHelpBoxes, EditorStyleManager styleManager)
-        {
-            if (showHelpBoxes)
-            {
-                string message = lightType == LightType.Directional 
-                    ? "💡 <b>Направленный свет</b> освещает все объекты равномерно с одного направления"
-                    : "💡 <b>Точечный свет</b> излучает свет во всех направлениях из заданной позиции";
-                
-                DisplaySettingsDrawer.DrawHelpBox(message, styleManager);
             }
         }
     }

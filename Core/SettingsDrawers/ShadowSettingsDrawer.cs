@@ -5,24 +5,21 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
 {
     public static class ShadowSettingsDrawer
     {
-        public static void Draw(ref bool showShadowSettings, ShadowSettings shadowSettings, 
-            bool showHelpBoxes, EditorStyleManager styleManager)
+        public static void Draw(ref bool showShadowSettings, ShadowSettings shadowSettings, EditorStyleManager styleManager)
         {
             EditorGUILayout.BeginVertical("box");
-            showShadowSettings = EditorGUILayout.Foldout(showShadowSettings, "👥 Настройки тени", 
+            showShadowSettings = EditorGUILayout.Foldout(showShadowSettings, "👥 Тень", 
                 styleManager?.FoldoutStyle ?? EditorStyles.foldout);
             
             if (showShadowSettings)
             {
                 EditorGUI.indentLevel++;
                 
-                shadowSettings.Enabled = EditorGUILayout.Toggle(
-                    new GUIContent("Включить тень", "Добавляет тень к иконке"), 
-                    shadowSettings.Enabled);
+                shadowSettings.Enabled = EditorGUILayout.Toggle(new GUIContent("Включить", "Включить отрисовку искусственной тени"), shadowSettings.Enabled);
 
                 if (shadowSettings.Enabled)
                 {
-                    DrawShadowContent(shadowSettings, showHelpBoxes, styleManager);
+                    DrawShadowContent(shadowSettings);
                 }
 
                 EditorGUI.indentLevel--;
@@ -31,23 +28,16 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             EditorGUILayout.Space(4f);
         }
 
-        private static void DrawShadowContent(ShadowSettings shadowSettings, bool showHelpBoxes, EditorStyleManager styleManager)
+        private static void DrawShadowContent(ShadowSettings shadowSettings)
         {
-            shadowSettings.Color = EditorGUILayout.ColorField(
-                new GUIContent("Цвет тени", "Цвет и прозрачность тени"), 
-                shadowSettings.Color);
+            shadowSettings.Color = EditorGUILayout.ColorField(new GUIContent("Цвет", "Цвет и прозрачность тени"), shadowSettings.Color);
 
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(new GUIContent("Смещение тени", "Смещение тени относительно иконки"), GUILayout.Width(120));
+            EditorGUILayout.LabelField(new GUIContent("Смещение", "Смещение тени относительно объекта"), GUILayout.Width(120));
             shadowSettings.Offset = EditorGUILayout.Vector2Field("", shadowSettings.Offset);
             EditorGUILayout.EndHorizontal();
 
-            shadowSettings.Scale = EditorGUILayout.Slider(
-                new GUIContent("Масштаб тени", "Размер тени относительно иконки"), 
-                shadowSettings.Scale, 0.5f, 1.2f);
-
-            if (showHelpBoxes)
-                DisplaySettingsDrawer.DrawHelpBox("💡 <b>Тень добавляется</b> к текстуре иконки и не зависит от освещения сцены", styleManager);
+            shadowSettings.Scale = EditorGUILayout.Slider(new GUIContent("Масштаб", "Масштаб тени относительно объекта"), shadowSettings.Scale, 0.5f, 1.2f);
         }
     }
 }

@@ -19,6 +19,8 @@ namespace NeonImperium.IconsCreation
 
         public void SaveIcon(Texture2D texture, string name)
         {
+            if (texture == null) return;
+
             try
             {
                 byte[] bytes = texture.EncodeToPNG();
@@ -28,25 +30,22 @@ namespace NeonImperium.IconsCreation
                 EnsureDirectoryExists(fullPath);
                 
                 File.WriteAllBytes(fullPath, bytes);
-                System.Threading.Thread.Sleep(100);
+                System.Threading.Thread.Sleep(30);
                 
                 AssetDatabase.Refresh();
 
-                // Создаем уникальный ключ для этого вызова
                 string callbackKey = fullPath;
                 
-                // Создаем callback function вместо System.Action
                 EditorApplication.CallbackFunction callback = () => 
                 {
-                    // Удаляем callback из pending list сразу при вызове
                     _pendingCallbacks.Remove(callbackKey);
                     ConfigureImportedSprite(fullPath);
                 };
                 
                 _pendingCallbacks[callbackKey] = callback;
-                #pragma warning disable UDR0005
+                #pragma warning disable UDR0005 // Domain Reload Analyzer
                 EditorApplication.delayCall += callback;
-                #pragma warning restore UDR0005
+                #pragma warning restore UDR0005 // Domain Reload Analyzer
             }
             catch (System.Exception e)
             {
@@ -56,8 +55,7 @@ namespace NeonImperium.IconsCreation
 
         public void Dispose()
         {
-            // Отменяем все pending callbacks при уничтожении сервиса
-            foreach (var callback in _pendingCallbacks.Values)
+            foreach (EditorApplication.CallbackFunction callback in _pendingCallbacks.Values)
             {
                 EditorApplication.delayCall -= callback;
             }
@@ -80,9 +78,16 @@ namespace NeonImperium.IconsCreation
 
         private string CleanFileName(string name)
         {
+            name = name.Replace("(Clone)", "")
+                      .Replace("(clone)", "")
+                      .Replace("(Clone) ", "")
+                      .Replace(" (Clone)", "")
+                      .Trim();
+            
             foreach (char invalidChar in Path.GetInvalidFileNameChars())
                 name = name.Replace(invalidChar.ToString(), "");
-            return name.Trim();
+            
+            return name;
         }
 
         private void ConfigureImportedSprite(string fullPath)
@@ -105,7 +110,6 @@ namespace NeonImperium.IconsCreation
                 ConfigureTextureImporter(importer);
                 importer.SaveAndReimport();
                 
-                Debug.Log($"Icon created: {relativePath}");
                 EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Texture2D>(relativePath));
             }
             catch (System.Exception e)
@@ -119,13 +123,13 @@ namespace NeonImperium.IconsCreation
             TextureImporter importer = null;
             int attempts = 0;
             
-            while (importer == null && attempts < 10)
+            while (importer == null && attempts < 15)
             {
                 importer = AssetImporter.GetAtPath(relativePath) as TextureImporter;
                 if (importer == null)
                 {
                     attempts++;
-                    System.Threading.Thread.Sleep(50);
+                    System.Threading.Thread.Sleep(20);
                     AssetDatabase.Refresh();
                 }
             }

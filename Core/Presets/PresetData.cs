@@ -11,6 +11,8 @@ namespace NeonImperium.IconsCreation
         public LightSettings lightSettings;
         public ShadowSettings shadowSettings;
         public string directory;
+        public string cameraTag;
+        public string objectsLayer;
 
         public PresetData()
         {
@@ -19,6 +21,8 @@ namespace NeonImperium.IconsCreation
             lightSettings = new LightSettings();
             shadowSettings = new ShadowSettings();
             directory = "Assets/Icons/";
+            cameraTag = "EditorOnly";
+            objectsLayer = "TransparentFX";
         }
     }
 }

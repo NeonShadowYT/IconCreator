@@ -8,44 +8,43 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
 {
     public static class ActionButtonsDrawer
     {
-        public static void Draw(List<Object> targets, string directory, 
-            bool hasValidTargets, System.Action createIcons, System.Action updatePreview)
+        public static void Draw(List<Object> targets, bool hasValidTargets, bool isGenerating, System.Action createIcons)
         {
             EditorGUILayout.BeginVertical("box");
 
             if (!hasValidTargets)
             {
-                EditorGUILayout.HelpBox("Добавьте хотя бы один объект для создания иконок", MessageType.Warning);
+                EditorGUILayout.HelpBox("Добавьте объекты для создания иконок", MessageType.Warning);
             }
             else
             {
-                DrawActionButtons(targets, directory, createIcons, updatePreview);
+                DrawActionButtons(targets, isGenerating, createIcons);
             }
 
             EditorGUILayout.EndVertical();
         }
 
-        private static void DrawActionButtons(List<Object> targets, string directory, 
-            System.Action createIcons, System.Action updatePreview)
+        private static void DrawActionButtons(List<Object> targets, bool isGenerating, System.Action createIcons)
         {
             int targetCount = targets.ExtractAllGameObjects().Count(g => g.HasVisibleMesh());
             string buttonText = targetCount > 1 ? $"Создать {targetCount} иконок" : "Создать иконку";
 
             var buttonStyle = new GUIStyle(GUI.skin.button)
             {
-                fixedHeight = 35,
+                fixedHeight = 40,
                 fontSize = 14,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter
             };
 
+            GUI.enabled = !isGenerating && targetCount > 0;
             if (GUILayout.Button($"🖼️ {buttonText}", buttonStyle))
                 createIcons?.Invoke();
-
-            EditorGUILayout.Space(5f);
-            if (GUILayout.Button("🔄 Обновить предпросмотр всех моделей"))
+            GUI.enabled = true;
+            
+            if (isGenerating)
             {
-                updatePreview?.Invoke();
+                EditorGUILayout.HelpBox("Создание иконок...", MessageType.Info);
             }
         }
     }

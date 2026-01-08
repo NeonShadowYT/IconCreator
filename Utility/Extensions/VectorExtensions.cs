@@ -10,10 +10,9 @@ namespace NeonImperium.IconsCreation.Extensions
             return a;
         }
 
-
         public static float BiggestComponentValue(this Vector2 a)
         {
-            return Mathf.Max(a.x, a.y);
+            return Mathf.Max(Mathf.Abs(a.x), Mathf.Abs(a.y));
         }
     }
 }

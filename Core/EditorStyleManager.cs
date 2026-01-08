@@ -20,7 +20,6 @@ namespace NeonImperium.IconsCreation
 
             try
             {
-                // Создаем стили с безопасными значениями по умолчанию
                 HeaderStyle = CreateSafeStyle(() => new GUIStyle(EditorStyles.boldLabel));
                 HeaderStyle.fontStyle = FontStyle.Bold;
                 HeaderStyle.fontSize = 18;
@@ -50,7 +49,6 @@ namespace NeonImperium.IconsCreation
                 MiniLabelStyle.richText = true;
                 MiniLabelStyle.padding = new RectOffset(2, 2, 0, 0);
 
-                // Безопасное создание текстуры
                 CreateSafeTexture();
 
                 _isInitialized = true;
@@ -68,7 +66,7 @@ namespace NeonImperium.IconsCreation
             {
                 return styleCreator();
             }
-            catch (System.Exception)
+            catch
             {
                 return new GUIStyle();
             }
@@ -86,9 +84,8 @@ namespace NeonImperium.IconsCreation
                     SolidColorTexture.Apply();
                 }
             }
-            catch (System.Exception e)
+            catch
             {
-                Debug.LogWarning($"Failed to create texture: {e.Message}");
                 SolidColorTexture = null;
             }
         }
@@ -139,10 +136,7 @@ namespace NeonImperium.IconsCreation
                     SolidColorTexture.Apply();
                 }
             }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"Failed to update styles: {e.Message}");
-            }
+            catch { }
         }
 
         public void Dispose()

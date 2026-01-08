@@ -8,9 +8,8 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
         private static readonly int[] SIZE_OPTIONS = { 32, 64, 128, 256, 512, 1024, 2048 };
         private static readonly string[] SIZE_OPTIONS_STR = { "32px", "64px", "128px", "256px", "512px", "1024px", "2048px" };
 
-        public static void Draw(ref bool showSpawnSettings, ref string directory, 
-            TextureSettings textureSettings, CameraSettings cameraSettings, 
-            bool showHelpBoxes, EditorStyleManager styleManager)
+        public static void Draw(ref bool showSpawnSettings, ref string directory, ref string cameraTag, ref string objectsLayer,
+            TextureSettings textureSettings, CameraSettings cameraSettings, EditorStyleManager styleManager)
         {
             EditorGUILayout.BeginVertical("box");
             showSpawnSettings = EditorGUILayout.Foldout(showSpawnSettings, "⚙️ Настройки иконки", 
@@ -20,11 +19,13 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             {
                 EditorGUI.indentLevel++;
                 
-                DrawDirectoryField(ref directory, showHelpBoxes, styleManager);
-                DrawSizeDropdown(textureSettings, showHelpBoxes);
-                DrawPaddingSlider(cameraSettings, showHelpBoxes);
-                DrawRotationField(cameraSettings, showHelpBoxes);
-                DrawShadowsToggle(cameraSettings, showHelpBoxes);
+                DrawDirectoryField(ref directory);
+                DrawCameraTagField(ref cameraTag);
+                DrawObjectsLayerField(ref objectsLayer);
+                DrawSizeDropdown(textureSettings);
+                DrawPaddingSlider(cameraSettings);
+                DrawRotationField(cameraSettings);
+                DrawShadowsToggle(cameraSettings);
                 
                 EditorGUI.indentLevel--;
             }
@@ -32,69 +33,83 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             EditorGUILayout.Space(4f);
         }
 
-        private static void DrawDirectoryField(ref string directory, bool showHelpBoxes, EditorStyleManager styleManager)
+        private static void DrawDirectoryField(ref string directory)
         {
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(new GUIContent("Папка сохранения", "Папка для сохранения созданных иконок"), GUILayout.Width(120));
+            EditorGUILayout.LabelField(new GUIContent("Папка сохранения", "Путь для сохранения созданных иконок"), GUILayout.Width(120));
             directory = EditorGUILayout.TextField(directory);
             if (GUILayout.Button("Обзор", GUILayout.Width(60)))
             {
-                string path = EditorUtility.SaveFolderPanel("Выберите папку для иконок", "Assets", "");
+                string path = EditorUtility.SaveFolderPanel("Выберите папку", "Assets", "");
                 if (!string.IsNullOrEmpty(path) && path.StartsWith(Application.dataPath))
                     directory = "Assets" + path.Substring(Application.dataPath.Length);
             }
             EditorGUILayout.EndHorizontal();
-
-            if (showHelpBoxes)
-                DisplaySettingsDrawer.DrawHelpBox("💡 <b>Папка должна находиться внутри Assets</b>", styleManager);
         }
 
-        private static void DrawSizeDropdown(TextureSettings textureSettings, bool showHelpBoxes)
+        private static void DrawCameraTagField(ref string cameraTag)
+        {
+            string[] tags = UnityEditorInternal.InternalEditorUtility.tags;
+            int currentIndex = System.Array.IndexOf(tags, cameraTag);
+            if (currentIndex == -1) currentIndex = 0;
+            
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(new GUIContent("Тег камеры", "Тег для временной камеры, используется для изоляции"), GUILayout.Width(120));
+            int newIndex = EditorGUILayout.Popup(currentIndex, tags);
+            if (newIndex >= 0 && newIndex < tags.Length && newIndex != currentIndex)
+            {
+                cameraTag = tags[newIndex];
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private static void DrawObjectsLayerField(ref string objectsLayer)
+        {
+            string[] layers = UnityEditorInternal.InternalEditorUtility.layers;
+            int currentIndex = System.Array.IndexOf(layers, objectsLayer);
+            if (currentIndex == -1) currentIndex = 0;
+            
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(new GUIContent("Слой объектов", "Слой для объектов на сцене создания иконок"), GUILayout.Width(120));
+            int newIndex = EditorGUILayout.Popup(currentIndex, layers);
+            if (newIndex >= 0 && newIndex < layers.Length && newIndex != currentIndex)
+            {
+                objectsLayer = layers[newIndex];
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private static void DrawSizeDropdown(TextureSettings textureSettings)
         {
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(new GUIContent("Размер иконки", "Размер иконки в пикселях"), GUILayout.Width(120));
+            EditorGUILayout.LabelField(new GUIContent("Размер иконки", "Размер текстуры в пикселях"), GUILayout.Width(120));
             
             int currentSizeIndex = System.Array.IndexOf(SIZE_OPTIONS, textureSettings.Size);
-            if (currentSizeIndex == -1) currentSizeIndex = 4; // 512 по умолчанию
+            if (currentSizeIndex == -1) currentSizeIndex = 4;
             
             int newSizeIndex = EditorGUILayout.Popup(currentSizeIndex, SIZE_OPTIONS_STR);
             textureSettings.Size = SIZE_OPTIONS[newSizeIndex];
             
             EditorGUILayout.EndHorizontal();
-
-            if (showHelpBoxes)
-                EditorGUILayout.HelpBox("💡 <b>Рекомендуемые размеры:</b> 512px - стандарт, 256px - для UI, 1024px - HD", MessageType.Info);
         }
 
-        private static void DrawPaddingSlider(CameraSettings cameraSettings, bool showHelpBoxes)
+        private static void DrawPaddingSlider(CameraSettings cameraSettings)
         {
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(new GUIContent("Внутренний отступ", "Отступ от краев объекта"), GUILayout.Width(120));
+            EditorGUILayout.LabelField(new GUIContent("Отступ", "Отступ от краев объекта в кадре"), GUILayout.Width(120));
             cameraSettings.Padding = EditorGUILayout.Slider(cameraSettings.Padding, 0f, 0.5f);
-            EditorGUILayout.LabelField($"{cameraSettings.Padding:P0}", GUILayout.Width(40));
             EditorGUILayout.EndHorizontal();
-
-            if (showHelpBoxes)
-                EditorGUILayout.HelpBox("💡 <b>Отступ помогает</b> предотвратить обрезку краев объекта", MessageType.Info);
         }
 
-        private static void DrawRotationField(CameraSettings cameraSettings, bool showHelpBoxes)
+        private static void DrawRotationField(CameraSettings cameraSettings)
         {
-            EditorGUILayout.LabelField("Поворот камеры");
+            EditorGUILayout.LabelField(new GUIContent("Поворот камеры", "Углы Эйлера для поворота камеры"));
             cameraSettings.Rotation = EditorGUILayout.Vector3Field("", cameraSettings.Rotation);
-
-            if (showHelpBoxes)
-                EditorGUILayout.HelpBox("💡 <b>Стандартные значения:</b> (45, -45, 0) - изометрический вид", MessageType.Info);
         }
 
-        private static void DrawShadowsToggle(CameraSettings cameraSettings, bool showHelpBoxes)
+        private static void DrawShadowsToggle(CameraSettings cameraSettings)
         {
-            cameraSettings.RenderShadows = EditorGUILayout.Toggle(
-                new GUIContent("Отображать тени", "Включает отображение теней на иконке"), 
-                cameraSettings.RenderShadows);
-
-            if (showHelpBoxes)
-                EditorGUILayout.HelpBox("💡 <b>Тени добавляют</b> глубину и реализм, но могут увеличить время рендера", MessageType.Info);
+            cameraSettings.RenderShadows = EditorGUILayout.Toggle(new GUIContent("Тени на сцене", "Рендерить тени на сцене создания иконок"), cameraSettings.RenderShadows);
         }
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using NeonImperium.IconsCreation.Helpers;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -11,13 +10,15 @@ namespace NeonImperium.IconsCreation
 {
     public class IconSceneService
     {
-        private const string TARGET_LAYER = "IconsCreatorTargets";
         private const string SCENE_NAME = "Icons_Creation";
         private readonly string _scenePath = $"Assets/Starve Neon/Script/Extension/Editor/IconsCreator/Scenes/{SCENE_NAME}.unity";
 
         private Scene _previousScene;
         private LightSettings _lightSettings;
         private bool _isOperating = false;
+        private GameObject _currentTargetInstance;
+        private Camera _sceneCamera;
+        private GameObject[] _createdLights;
 
         public void EnsureSceneExists()
         {
@@ -43,14 +44,8 @@ namespace NeonImperium.IconsCreation
 
             try
             {
-                scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Additive);
+                scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
                 scene.name = SCENE_NAME;
-                
-                ulong layerMask = (ulong)LayerMask.GetMask(TARGET_LAYER);
-                EditorSceneManager.SetSceneCullingMask(scene, layerMask);
-
-                ConfigureSceneObjects(scene);
-                ConfigureSceneLighting();
                 
                 EditorSceneManager.SaveScene(scene, _scenePath);
             }
@@ -66,44 +61,11 @@ namespace NeonImperium.IconsCreation
             }
         }
 
-        private void ConfigureSceneObjects(Scene scene)
+        public void ExecuteWithTarget(GameObject target, string targetName, LightSettings lightSettings, bool renderShadows, 
+                                    string cameraTag, string objectsLayer, Action<GameObject> action)
         {
-            foreach (GameObject root in scene.GetRootGameObjects())
+            if (EditorApplication.isPlaying || _isOperating)
             {
-                if (root.TryGetComponent<Camera>(out var camera))
-                {
-                    camera.tag = "IconsCreationCamera";
-                    camera.clearFlags = CameraClearFlags.SolidColor;
-                    camera.backgroundColor = Color.clear;
-                    camera.orthographic = true;
-                }
-                
-                // Удаляем стандартный Directional Light из сцены иконок
-                if (root.TryGetComponent<Light>(out var light) && light.type == LightType.Directional)
-                {
-                    UnityEngine.Object.DestroyImmediate(root);
-                }
-            }
-        }
-
-        private void ConfigureSceneLighting()
-        {
-            RenderSettings.skybox = null;
-            RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientSkyColor = new Color(0.73f, 0.73f, 0.73f);
-        }
-
-        public void ExecuteWithTarget(GameObject target, LightSettings lightSettings, bool renderShadows, Action<GameObject> action)
-        {
-            if (EditorApplication.isPlaying)
-            {
-                Debug.LogWarning("Cannot execute icon creation operations in Play Mode");
-                return;
-            }
-
-            if (_isOperating)
-            {
-                Debug.LogWarning("Icon scene service is already operating");
                 return;
             }
 
@@ -113,35 +75,28 @@ namespace NeonImperium.IconsCreation
             try
             {
                 _lightSettings = lightSettings;
-                LayersHelper.CreateLayer(TARGET_LAYER);
                 scene = OpenScene();
                 
-                if (!scene.IsValid())
-                {
-                    Debug.LogError("Failed to open icon creation scene");
-                    return;
-                }
+                if (!scene.IsValid()) return;
 
-                GameObject targetInstance = InstantiateTarget(target);
-                if (targetInstance == null)
-                {
-                    Debug.LogError("Failed to instantiate target");
-                    return;
-                }
-
-                SetupTargetLayer(targetInstance, renderShadows);
-                SetupSceneLighting();
+                CleanupPreviousTarget();
+                SetupSceneCamera(cameraTag);
                 
-                action?.Invoke(targetInstance);
+                _currentTargetInstance = InstantiateTarget(target, targetName);
+                if (_currentTargetInstance == null) return;
+
+                SetupTargetLayer(_currentTargetInstance, objectsLayer, renderShadows);
+                SetupSceneLighting(objectsLayer);
+                
+                action?.Invoke(_currentTargetInstance);
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"Error during icon scene operation: {e.Message}");
+                Debug.LogError($"Failed to execute with target: {e.Message}");
             }
             finally
             {
                 CloseScene(scene);
-                LayersHelper.RemoveLayer(TARGET_LAYER);
                 _lightSettings = null;
                 _isOperating = false;
             }
@@ -165,21 +120,17 @@ namespace NeonImperium.IconsCreation
             }
         }
 
-        private GameObject InstantiateTarget(GameObject original)
+        private GameObject InstantiateTarget(GameObject original, string targetName)
         {
             if (EditorApplication.isPlaying) return null;
             
             Scene currentScene = EditorSceneManager.GetActiveScene();
-            if (currentScene.name != SCENE_NAME)
-            {
-                Debug.LogWarning("Target can only be placed in the internal scene!");
-                return null;
-            }
+            if (currentScene.name != SCENE_NAME) return null;
 
             try
             {
                 GameObject instance = UnityEngine.Object.Instantiate(original);
-                instance.name = original.name;
+                instance.name = targetName;
                 return instance;
             }
             catch (System.Exception e)
@@ -189,34 +140,86 @@ namespace NeonImperium.IconsCreation
             }
         }
 
-        private void SetupTargetLayer(GameObject target, bool renderShadows)
+        private void CleanupPreviousTarget()
         {
-            int layer = LayerMask.NameToLayer(TARGET_LAYER);
-            if (layer == -1)
+            if (_currentTargetInstance != null)
             {
-                Debug.LogError($"Layer {TARGET_LAYER} not found");
-                return;
+                UnityEngine.Object.DestroyImmediate(_currentTargetInstance);
+                _currentTargetInstance = null;
             }
+            
+            CleanupLights();
+        }
 
-            target.layer = layer;
-
-            foreach (Transform child in target.GetComponentsInChildren<Transform>())
+        private void CleanupLights()
+        {
+            if (_createdLights != null)
             {
-                child.gameObject.layer = layer;
-                
-                if (child.TryGetComponent<MeshRenderer>(out var renderer))
+                foreach (GameObject light in _createdLights)
                 {
-                    renderer.shadowCastingMode = renderShadows ? 
-                        ShadowCastingMode.On : ShadowCastingMode.Off;
+                    if (light != null)
+                        UnityEngine.Object.DestroyImmediate(light);
+                }
+                _createdLights = null;
+            }
+        }
+
+        private void SetupSceneCamera(string cameraTag)
+        {
+            if (_sceneCamera == null || !_sceneCamera.CompareTag(cameraTag))
+            {
+                _sceneCamera = null;
+                foreach (GameObject root in EditorSceneManager.GetActiveScene().GetRootGameObjects())
+                {
+                    if (root.TryGetComponent<Camera>(out Camera camera) && camera.CompareTag(cameraTag))
+                    {
+                        _sceneCamera = camera;
+                        break;
+                    }
+                }
+                
+                if (_sceneCamera == null)
+                {
+                    GameObject cameraGO = new GameObject("IconsCreator_Camera");
+                    _sceneCamera = cameraGO.AddComponent<Camera>();
+                    _sceneCamera.tag = cameraTag;
+                    _sceneCamera.clearFlags = CameraClearFlags.SolidColor;
+                    _sceneCamera.backgroundColor = Color.clear;
+                    _sceneCamera.orthographic = true;
+                    cameraGO.SetActive(false);
                 }
             }
         }
 
-        private void SetupSceneLighting()
+        private void SetupTargetLayer(GameObject target, string objectsLayer, bool renderShadows)
         {
-            int cullingMask = LayerMask.GetMask(TARGET_LAYER);
+            int layer = LayerMask.NameToLayer(objectsLayer);
+            if (layer == -1) layer = LayerMask.NameToLayer("Default");
+
+            if (layer != -1)
+            {
+                target.layer = layer;
+
+                foreach (Transform child in target.GetComponentsInChildren<Transform>())
+                {
+                    child.gameObject.layer = layer;
+                    
+                    if (child.TryGetComponent<MeshRenderer>(out MeshRenderer renderer))
+                    {
+                        renderer.shadowCastingMode = renderShadows ? 
+                            ShadowCastingMode.On : ShadowCastingMode.Off;
+                        renderer.receiveShadows = renderShadows;
+                    }
+                }
+            }
+        }
+
+        private void SetupSceneLighting(string objectsLayer)
+        {
+            int cullingMask = LayerMask.GetMask(objectsLayer);
+            if (cullingMask == 0) cullingMask = LayerMask.GetMask("Default");
             
-            ClearExistingLights();
+            CleanupLights();
             
             if (_lightSettings.Type == LightType.Directional)
             {
@@ -230,18 +233,6 @@ namespace NeonImperium.IconsCreation
             SetupCameraCullingMask(cullingMask);
         }
 
-        private void ClearExistingLights()
-        {
-            var existingLights = UnityEngine.Object.FindObjectsByType<Light>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            foreach (var light in existingLights)
-            {
-                if (light.gameObject.scene.name == SCENE_NAME && !light.CompareTag("IconsCreationCamera"))
-                {
-                    UnityEngine.Object.DestroyImmediate(light.gameObject);
-                }
-            }
-        }
-
         private void CreateDirectionalLight(int cullingMask)
         {
             GameObject lightGo = new GameObject("IconsCreator_DirectionalLight");
@@ -251,13 +242,18 @@ namespace NeonImperium.IconsCreation
             light.intensity = _lightSettings.DirectionalIntensity;
             light.transform.rotation = Quaternion.Euler(_lightSettings.DirectionalRotation);
             light.cullingMask = cullingMask;
+            light.shadows = LightShadows.Soft;
+            
+            _createdLights = new GameObject[] { lightGo };
         }
 
         private void CreatePointLights(int cullingMask)
         {
+            _createdLights = new GameObject[_lightSettings.PointLights.Length];
+            
             for (int i = 0; i < _lightSettings.PointLights.Length; i++)
             {
-                var pointLight = _lightSettings.PointLights[i];
+                LightSettings.PointLightData pointLight = _lightSettings.PointLights[i];
                 GameObject lightGo = new GameObject($"IconsCreator_PointLight_{i + 1}");
                 Light light = lightGo.AddComponent<Light>();
                 light.type = LightType.Point;
@@ -266,22 +262,24 @@ namespace NeonImperium.IconsCreation
                 light.transform.position = pointLight.Position;
                 light.cullingMask = cullingMask;
                 light.range = 10f;
+                light.shadows = LightShadows.Soft;
+                
+                _createdLights[i] = lightGo;
             }
         }
 
         private void SetupCameraCullingMask(int cullingMask)
         {
-            foreach (GameObject root in EditorSceneManager.GetActiveScene().GetRootGameObjects())
-            {
-                if (root.TryGetComponent<Camera>(out var camera))
-                    camera.cullingMask = cullingMask;
-            }
+            if (_sceneCamera != null)
+                _sceneCamera.cullingMask = cullingMask;
         }
 
         private void CloseScene(Scene scene)
         {
             try
             {
+                CleanupPreviousTarget();
+                
                 if (_previousScene.IsValid())
                 {
                     EditorSceneManager.SetActiveScene(_previousScene);

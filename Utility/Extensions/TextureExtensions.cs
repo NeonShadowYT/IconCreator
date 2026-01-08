@@ -6,16 +6,18 @@ namespace NeonImperium.IconsCreation.Extensions
     {
         public static Texture2D Resize(this Texture2D texture, int targetSize)
         {
-            if (texture == null) return null;
+            if (texture == null || targetSize <= 0 || targetSize > 8192) return null;
 
             FilterMode filterMode = texture.filterMode;
 
             RenderTexture temporaryRenderTexture = RenderTexture.GetTemporary(targetSize, targetSize);
+            if (temporaryRenderTexture == null) return null;
+
             RenderTexture.active = temporaryRenderTexture;
             
             Graphics.Blit(texture, temporaryRenderTexture);
 
-            Texture2D resizedTexture = new(targetSize, targetSize)
+            Texture2D resizedTexture = new Texture2D(targetSize, targetSize)
             {
                 filterMode = filterMode
             };
@@ -24,6 +26,7 @@ namespace NeonImperium.IconsCreation.Extensions
             resizedTexture.Apply();
 
             RenderTexture.ReleaseTemporary(temporaryRenderTexture);
+            RenderTexture.active = null;
 
             return resizedTexture;
         }
