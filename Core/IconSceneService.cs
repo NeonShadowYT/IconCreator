@@ -11,7 +11,7 @@ namespace NeonImperium.IconsCreation
     public class IconSceneService
     {
         private const string SCENE_NAME = "Icons_Creation";
-        private readonly string _scenePath = $"Assets/Starve Neon/Script/Extension/Editor/IconsCreator/Scenes/{SCENE_NAME}.unity";
+        private readonly string _scenePath = $"Assets/Plugins/Editor/IconsCreator/Scenes/{SCENE_NAME}.unity";
 
         private Scene _previousScene;
         private LightSettings _lightSettings;

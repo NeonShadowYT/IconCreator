@@ -10,7 +10,7 @@ namespace NeonImperium.IconsCreation
     public class IconsCreatorWindow : EditorWindow
     {   
         [SerializeField] private string directory = "Assets/Icons/";
-        [SerializeField] private string presetsFolder = "Assets/Starve Neon/Script/Extension/Editor/IconsCreator/Presets";
+        [SerializeField] private string presetsFolder = "Assets/Plugins/Editor/IconsCreator/Presets";
         [SerializeField] private TextureSettings textureSettings = new TextureSettings();
         [SerializeField] private CameraSettings cameraSettings = new CameraSettings();
         [SerializeField] private LightSettings lightSettings = new LightSettings();
