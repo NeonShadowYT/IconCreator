@@ -115,7 +115,7 @@ namespace NeonImperium.IconsCreation
         {
             SaveSettings();
             _iconCreator.Dispose();
-            _styleManager.Dispose();
+            _styleManager?.Dispose();
             _styleManager = null;
             
             PresetDrawer.ClearCache();
