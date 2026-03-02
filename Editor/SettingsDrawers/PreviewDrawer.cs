@@ -9,8 +9,7 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
         private const int MAX_PREVIEWS_PER_ROW = 3;
 
         public static void Draw(Vector2 previewScrollPosition, 
-            Texture2D[] cameraPreviews, IconsCreatorData data, bool hasValidTargets, 
-            int targetCount, EditorStyleManager styleManager)
+            Texture2D[] cameraPreviews, IconsCreatorData data, bool hasValidTargets)
         {
             if (!hasValidTargets) return;
 
@@ -56,7 +55,7 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
                     
                     if (previews[previewIndex] != null)
                     {
-                        DrawPreviewItem(previews[previewIndex], data, previewIndex, previewCount);
+                        DrawPreviewItem(previews[previewIndex], data, previewIndex);
                     }
                     
                     previewIndex++;
@@ -78,7 +77,7 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             EditorGUILayout.EndScrollView();
         }
 
-        private static void DrawPreviewItem(Texture2D preview, IconsCreatorData data, int index, int previewCount)
+        private static void DrawPreviewItem(Texture2D preview, IconsCreatorData data, int index)
         {
             EditorGUILayout.BeginVertical(GUILayout.Width(PREVIEW_SIZE), GUILayout.Height(PREVIEW_SIZE + 25f));
             
@@ -87,10 +86,9 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
                 : $"Объект {index + 1}";
             
             EditorGUILayout.LabelField(label, EditorStyles.miniLabel, GUILayout.Width(PREVIEW_SIZE));
-
             Rect previewRect = GUILayoutUtility.GetRect(PREVIEW_SIZE, PREVIEW_SIZE);
+            EditorGUI.DrawRect(previewRect, new Color(0f, 0f, 0f, 0.15f));
             GUI.DrawTexture(previewRect, preview, ScaleMode.ScaleToFit);
-            
             EditorGUILayout.EndVertical();
         }
     }

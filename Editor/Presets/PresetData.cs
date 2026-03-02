@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace NeonImperium.IconsCreation
 {
     [System.Serializable]
@@ -10,9 +8,6 @@ namespace NeonImperium.IconsCreation
         public CameraSettings cameraSettings;
         public LightSettings lightSettings;
         public ShadowSettings shadowSettings;
-        public string directory;
-        public string cameraTag;
-        public string objectsLayer;
 
         public PresetData()
         {
@@ -20,9 +15,6 @@ namespace NeonImperium.IconsCreation
             cameraSettings = new CameraSettings();
             lightSettings = new LightSettings();
             shadowSettings = new ShadowSettings();
-            directory = "Assets/Icons/";
-            cameraTag = "EditorOnly";
-            objectsLayer = "TransparentFX";
         }
     }
 }

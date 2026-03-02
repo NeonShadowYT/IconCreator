@@ -10,12 +10,12 @@ namespace NeonImperium.IconsCreation
         private static Vector2 _presetScrollPosition;
         private static string _newPresetName = "Новый пресет";
         #pragma warning restore UDR0001 // Domain Reload Analyzer
-        private static readonly Dictionary<string, Texture2D> _previewCache = new Dictionary<string, Texture2D>();
+        private static readonly Dictionary<string, Texture2D> _previewCache = new();
 
         public static void Draw(ref bool showPresetSettings, PresetManager presetManager, 
             ref string presetsFolder, TextureSettings textureSettings, CameraSettings cameraSettings, 
-            LightSettings lightSettings, ShadowSettings shadowSettings, string directory,
-            List<Object> targets, string cameraTag, string objectsLayer, string scenePath, EditorStyleManager styleManager)
+            LightSettings lightSettings, ShadowSettings shadowSettings,
+            List<Object> targets, string scenePath, EditorStyleManager styleManager)
         {
             EditorGUILayout.BeginVertical("box");
             showPresetSettings = EditorGUILayout.Foldout(showPresetSettings, "💾 Пресеты", 
@@ -27,7 +27,7 @@ namespace NeonImperium.IconsCreation
                 DrawPresetsFolderField(ref presetsFolder, presetManager);
                 EditorGUILayout.Space(10f);
                 DrawPresetManagement(presetManager, textureSettings, cameraSettings, lightSettings, 
-                    shadowSettings, directory, cameraTag, objectsLayer, targets, scenePath);
+                    shadowSettings, targets, scenePath);
                 
                 EditorGUI.indentLevel--;
             }
@@ -51,7 +51,7 @@ namespace NeonImperium.IconsCreation
                 string path = EditorUtility.SaveFolderPanel("Выберите папку для пресетов", "Assets", "");
                 if (!string.IsNullOrEmpty(path) && path.StartsWith(Application.dataPath))
                 {
-                    presetsFolder = "Assets" + path.Substring(Application.dataPath.Length);
+                    presetsFolder = "Assets" + path[Application.dataPath.Length..];
                     presetManager.SetPresetsFolder(presetsFolder);
                     ClearCache();
                 }
@@ -61,11 +61,11 @@ namespace NeonImperium.IconsCreation
 
         private static void DrawPresetManagement(PresetManager presetManager, 
             TextureSettings textureSettings, CameraSettings cameraSettings, 
-            LightSettings lightSettings, ShadowSettings shadowSettings, string directory,
-            string cameraTag, string objectsLayer, List<Object> targets, string scenePath)
+            LightSettings lightSettings, ShadowSettings shadowSettings, 
+            List<Object> targets, string scenePath)
         {
             DrawSavePresetSection(presetManager, textureSettings, cameraSettings, 
-                lightSettings, shadowSettings, directory, cameraTag, objectsLayer);
+                lightSettings, shadowSettings);
             
             EditorGUILayout.Space(10f);
             DrawPresetsList(presetManager, targets, scenePath);
@@ -73,8 +73,7 @@ namespace NeonImperium.IconsCreation
 
         private static void DrawSavePresetSection(PresetManager presetManager, 
             TextureSettings textureSettings, CameraSettings cameraSettings, 
-            LightSettings lightSettings, ShadowSettings shadowSettings, string directory,
-            string cameraTag, string objectsLayer)
+            LightSettings lightSettings, ShadowSettings shadowSettings)
         {
             EditorGUILayout.LabelField("Сохранить текущие настройки", EditorStyles.boldLabel);
             
@@ -90,10 +89,7 @@ namespace NeonImperium.IconsCreation
                     textureSettings = CloneTextureSettings(textureSettings),
                     cameraSettings = CloneCameraSettings(cameraSettings),
                     lightSettings = CloneLightSettings(lightSettings),
-                    shadowSettings = CloneShadowSettings(shadowSettings),
-                    directory = directory,
-                    cameraTag = cameraTag,
-                    objectsLayer = objectsLayer
+                    shadowSettings = CloneShadowSettings(shadowSettings)
                 };
 
                 presetManager.SavePreset(preset);
@@ -128,13 +124,13 @@ namespace NeonImperium.IconsCreation
 
             foreach (PresetData preset in presets)
             {
-                DrawPresetItem(preset, presetManager, targets, scenePath);
+                DrawPresetItem(preset, presetManager);
             }
 
             EditorGUILayout.EndScrollView();
         }
 
-        private static void DrawPresetItem(PresetData preset, PresetManager presetManager, List<Object> targets, string scenePath)
+        private static void DrawPresetItem(PresetData preset, PresetManager presetManager)
         {
             EditorGUILayout.BeginVertical("box");
             
@@ -166,16 +162,11 @@ namespace NeonImperium.IconsCreation
             EditorGUILayout.LabelField($"👥 {(preset.shadowSettings.Enabled ? "Вкл" : "Выкл")}", EditorStyles.miniLabel, GUILayout.Width(80));
             EditorGUILayout.EndHorizontal();
             
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField($"🏷️ {preset.cameraTag}", EditorStyles.miniLabel, GUILayout.Width(100));
-            EditorGUILayout.LabelField($"📊 {preset.objectsLayer}", EditorStyles.miniLabel, GUILayout.Width(100));
-            EditorGUILayout.EndHorizontal();
-            
             EditorGUILayout.EndVertical();
             
             EditorGUILayout.BeginVertical(GUILayout.Width(120));
             
-            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button)
+            GUIStyle buttonStyle = new(GUI.skin.button)
             {
                 fixedHeight = 25,
                 fontSize = 11,
@@ -184,7 +175,7 @@ namespace NeonImperium.IconsCreation
             
             if (GUILayout.Button("🔄 Загрузить", buttonStyle))
             {
-                ApplyPreset(preset, presetManager);
+                ApplyPreset(preset);
             }
             
             if (GUILayout.Button("🗑️ Удалить", buttonStyle))
@@ -206,7 +197,7 @@ namespace NeonImperium.IconsCreation
             EditorGUILayout.Space(5f);
         }
 
-        private static void ApplyPreset(PresetData preset, PresetManager presetManager)
+        private static void ApplyPreset(PresetData preset)
         {
             IconsCreatorWindow[] windows = Resources.FindObjectsOfTypeAll<IconsCreatorWindow>();
             foreach (IconsCreatorWindow window in windows)
@@ -229,7 +220,7 @@ namespace NeonImperium.IconsCreation
             foreach (Texture2D texture in _previewCache.Values)
             {
                 if (texture != null)
-                    UnityEngine.Object.DestroyImmediate(texture);
+                    Object.DestroyImmediate(texture);
             }
             _previewCache.Clear();
         }
@@ -257,7 +248,7 @@ namespace NeonImperium.IconsCreation
 
         private static LightSettings CloneLightSettings(LightSettings original)
         {
-            LightSettings clone = new LightSettings
+            LightSettings clone = new()
             {
                 Type = original.Type,
                 DirectionalRotation = original.DirectionalRotation,

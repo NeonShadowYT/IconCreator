@@ -35,7 +35,7 @@ namespace NeonImperium.IconsCreation
 
         public List<PresetData> LoadAllPresets()
         {
-            List<PresetData> presets = new List<PresetData>();
+            List<PresetData> presets = new();
             
             if (!Directory.Exists(_presetsFolder))
                 return presets;
@@ -79,7 +79,7 @@ namespace NeonImperium.IconsCreation
             AssetDatabase.Refresh();
         }
 
-        public Texture2D GeneratePreviewForPreset(PresetData preset, List<UnityEngine.Object> targets, string scenePath)
+        public Texture2D GeneratePreviewForPreset(PresetData preset, List<Object> targets, string scenePath)
         {
             if (EditorApplication.isPlaying) return null;
 
@@ -88,25 +88,25 @@ namespace NeonImperium.IconsCreation
             
             try
             {
-                IconsCreatorData tempData = new IconsCreatorData(
+                IconsCreatorData tempData = new(
                     preset.textureSettings,
                     preset.cameraSettings,
                     preset.lightSettings,
                     preset.shadowSettings,
-                    preset.directory,
-                    new List<UnityEngine.Object> { previewTarget },
-                    preset.cameraTag,
-                    preset.objectsLayer
+                    "Assets/Icons/", // directory - не используется в превью
+                    new List<Object> { previewTarget },
+                    "EditorOnly", // cameraTag - не используется в превью
+                    "Default" // objectsLayer - не используется в превью
                 );
 
-                IconSceneService sceneService = new IconSceneService();
-                IconCameraService cameraService = new IconCameraService();
+                IconSceneService sceneService = new();
+                IconCameraService cameraService = new();
                 
-                cameraService.Initialize(preset.textureSettings, preset.cameraSettings, preset.shadowSettings, preset.cameraTag);
+                cameraService.Initialize(preset.textureSettings, preset.cameraSettings, preset.shadowSettings, "EditorOnly");
                 
                 Texture2D preview = null;
                 sceneService.ExecuteWithTarget(previewTarget, previewTarget.name, preset.lightSettings, 
-                    preset.cameraSettings.RenderShadows, preset.cameraTag, preset.objectsLayer, scenePath, target =>
+                    preset.cameraSettings.RenderShadows, "EditorOnly", "Default", scenePath, target =>
                 {
                     if (target != null)
                     {
@@ -123,16 +123,16 @@ namespace NeonImperium.IconsCreation
             {
                 if (previewTarget.name == "PreviewCube")
                 {
-                    UnityEngine.Object.DestroyImmediate(previewTarget);
+                    Object.DestroyImmediate(previewTarget);
                 }
             }
         }
 
-        private GameObject GetPreviewTarget(List<UnityEngine.Object> targets)
+        private GameObject GetPreviewTarget(List<Object> targets)
         {
             if (targets != null && targets.Count > 0)
             {
-                foreach (UnityEngine.Object target in targets)
+                foreach (Object target in targets)
                 {
                     if (target is GameObject gameObject && gameObject != null)
                     {

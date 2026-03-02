@@ -1,4 +1,4 @@
-﻿﻿﻿﻿using System.Collections.Generic;
+﻿﻿using System.Collections.Generic;
 using System.Linq;
 using NeonImperium.IconsCreation.Extensions;
 using NeonImperium.IconsCreation.SettingsDrawers;
@@ -12,15 +12,15 @@ namespace NeonImperium.IconsCreation
         [SerializeField] private string directory = "Assets/Icons/";
         [SerializeField] private string scenePath = "Assets/Plugins/NeonImperium/IconCreator/Scenes/Icons_Creation.unity";
         [SerializeField] private string presetsFolder = "Assets/Plugins/NeonImperium/IconCreator/Presets";
-        [SerializeField] private TextureSettings textureSettings = new TextureSettings();
-        [SerializeField] private CameraSettings cameraSettings = new CameraSettings();
-        [SerializeField] private LightSettings lightSettings = new LightSettings();
-        [SerializeField] private ShadowSettings shadowSettings = new ShadowSettings();
-        [SerializeField] private List<UnityEngine.Object> targets = new List<UnityEngine.Object>();
+        [SerializeField] private TextureSettings textureSettings = new();
+        [SerializeField] private CameraSettings cameraSettings = new();
+        [SerializeField] private LightSettings lightSettings = new();
+        [SerializeField] private ShadowSettings shadowSettings = new();
+        [SerializeField] private List<Object> targets = new();
         [SerializeField] private string cameraTag = "EditorOnly";
         [SerializeField] private string objectsLayer = "TransparentFX";
 
-        private readonly IconCreatorService _iconCreator = new IconCreatorService();
+        private readonly IconCreatorService _iconCreator = new();
         private PresetManager _presetManager;
         private Vector2 _scrollPosition;
         private Vector2 _previewScrollPosition;
@@ -33,7 +33,7 @@ namespace NeonImperium.IconsCreation
         private bool _showObjectsSettings = true;
         private bool _showPresetSettings = false;
 
-        private bool HasValidTargets => targets.ExtractAllGameObjects().Where(g => g.HasVisibleMesh()).Any();
+        private bool HasValidTargets => targets.ExtractAllGameObjects().Any(g => g.HasVisibleMesh());
         private int TargetCount => targets.ExtractAllGameObjects().Count(g => g.HasVisibleMesh());
         private IconsCreatorData _data;
         private bool _previewNeedsUpdate = false;
@@ -42,7 +42,7 @@ namespace NeonImperium.IconsCreation
         private PresetData _currentSettingsState;
         private bool _settingsChangedSinceLastPreview = false;
         private bool _firstPreviewUpdate = true;
-        private List<UnityEngine.Object> _previousTargets = new List<UnityEngine.Object>();
+        private List<Object> _previousTargets = new();
         private bool _targetsChanged = false;
 
         [MenuItem("Neon Imperium/Создатель иконок")]
@@ -107,7 +107,7 @@ namespace NeonImperium.IconsCreation
             
             EditorApplication.update += OnEditorUpdate;
             CreateCurrentSettingsState();
-            _previousTargets = new List<UnityEngine.Object>(targets);
+            _previousTargets = new List<Object>(targets);
             _previewNeedsUpdate = true;
             _firstPreviewUpdate = true;
         }
@@ -145,7 +145,7 @@ namespace NeonImperium.IconsCreation
             if (TargetsChanged(_previousTargets, targets))
             {
                 _targetsChanged = true;
-                _previousTargets = new List<UnityEngine.Object>(targets);
+                _previousTargets = new List<Object>(targets);
                 PresetDrawer.ClearCache();
                 _iconCreator.MarkPreviewDirty();
                 _previewNeedsUpdate = true;
@@ -153,7 +153,7 @@ namespace NeonImperium.IconsCreation
             }
         }
 
-        private bool TargetsChanged(List<UnityEngine.Object> oldTargets, List<UnityEngine.Object> newTargets)
+        private bool TargetsChanged(List<Object> oldTargets, List<Object> newTargets)
         {
             if (oldTargets.Count != newTargets.Count) return true;
             
@@ -318,7 +318,7 @@ namespace NeonImperium.IconsCreation
                 DrawHeader();
                 
                 PresetDrawer.Draw(ref _showPresetSettings, _presetManager, ref presetsFolder, textureSettings, cameraSettings, 
-                    lightSettings, shadowSettings, directory, targets, cameraTag, objectsLayer, scenePath, _styleManager);
+                    lightSettings, shadowSettings, targets, scenePath, _styleManager);
                     
                 SpawnSettingsDrawer.Draw(ref _showSpawnSettings, ref directory, ref cameraTag, ref objectsLayer,
                     ref scenePath, textureSettings, cameraSettings, _styleManager);
@@ -330,11 +330,10 @@ namespace NeonImperium.IconsCreation
                 
                 if (HasValidTargets)
                 {
-                    PreviewDrawer.Draw(_previewScrollPosition, _iconCreator.CameraPreviews, 
-                        _data, HasValidTargets, TargetCount, _styleManager);
+                    PreviewDrawer.Draw(_previewScrollPosition, _iconCreator.CameraPreviews, _data, HasValidTargets);
                 }
                 
-                SettingsDrawers.ActionButtonsDrawer.Draw(targets, HasValidTargets, _iconCreator.IsGenerating, CreateIcons);
+                ActionButtonsDrawer.Draw(targets, HasValidTargets, _iconCreator.IsGenerating, CreateIcons);
             }
 
             if (GUI.changed && !_iconCreator.IsGenerating)
@@ -364,10 +363,7 @@ namespace NeonImperium.IconsCreation
                 textureSettings = CloneTextureSettings(textureSettings),
                 cameraSettings = CloneCameraSettings(cameraSettings),
                 lightSettings = CloneLightSettings(lightSettings),
-                shadowSettings = CloneShadowSettings(shadowSettings),
-                directory = directory,
-                cameraTag = cameraTag,
-                objectsLayer = objectsLayer
+                shadowSettings = CloneShadowSettings(shadowSettings)
             };
         }
 
@@ -395,10 +391,7 @@ namespace NeonImperium.IconsCreation
                    shadowSettings.Enabled == _currentSettingsState.shadowSettings.Enabled &&
                    shadowSettings.Color == _currentSettingsState.shadowSettings.Color &&
                    shadowSettings.Offset == _currentSettingsState.shadowSettings.Offset &&
-                   shadowSettings.Scale == _currentSettingsState.shadowSettings.Scale &&
-                   directory == _currentSettingsState.directory &&
-                   cameraTag == _currentSettingsState.cameraTag &&
-                   objectsLayer == _currentSettingsState.objectsLayer;
+                   shadowSettings.Scale == _currentSettingsState.shadowSettings.Scale;
         }
 
         private TextureSettings CloneTextureSettings(TextureSettings original)
@@ -539,10 +532,6 @@ namespace NeonImperium.IconsCreation
             shadowSettings.Color = preset.shadowSettings.Color;
             shadowSettings.Offset = preset.shadowSettings.Offset;
             shadowSettings.Scale = preset.shadowSettings.Scale;
-            
-            directory = preset.directory;
-            cameraTag = preset.cameraTag;
-            objectsLayer = preset.objectsLayer;
             
             EditorPrefs.SetString("currentPresetName", preset.presetName);
             

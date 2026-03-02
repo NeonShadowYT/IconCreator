@@ -9,7 +9,7 @@ namespace NeonImperium.IconsCreation
     {
         private string _directory;
         private TextureSettings _textureSettings;
-        private readonly Dictionary<string, EditorApplication.CallbackFunction> _pendingCallbacks = new Dictionary<string, EditorApplication.CallbackFunction>();
+        private readonly Dictionary<string, EditorApplication.CallbackFunction> _pendingCallbacks = new();
 
         public void Initialize(string directory, TextureSettings textureSettings)
         {
@@ -43,9 +43,9 @@ namespace NeonImperium.IconsCreation
                 };
                 
                 _pendingCallbacks[callbackKey] = callback;
-                #pragma warning disable UDR0005 // Domain Reload Analyzer
+                #pragma warning disable UDR0005
                 EditorApplication.delayCall += callback;
-                #pragma warning restore UDR0005 // Domain Reload Analyzer
+                #pragma warning restore UDR0005
             }
             catch (System.Exception e)
             {
@@ -65,7 +65,12 @@ namespace NeonImperium.IconsCreation
         private string GetSavePath(string name)
         {
             string cleanName = CleanFileName(name);
-            string directoryPath = Path.Combine(Application.dataPath, _directory.TrimStart('/'));
+            string relativePath = _directory.TrimStart('/');
+            
+            if (relativePath.StartsWith("Assets/"))
+                relativePath = relativePath[7..];
+            
+            string directoryPath = Path.Combine(Application.dataPath, relativePath);
             return Path.Combine(directoryPath, cleanName + ".png");
         }
 

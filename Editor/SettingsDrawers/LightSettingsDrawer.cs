@@ -5,6 +5,18 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
 {
     public static class LightSettingsDrawer
     {
+        private static readonly LightType[] supportedLightTypes = new LightType[] 
+        { 
+            LightType.Directional, 
+            LightType.Point 
+        };
+        
+        private static readonly string[] supportedLightNames = new string[] 
+        { 
+            "Directional (Направленный)", 
+            "Point (Точечный)" 
+        };
+
         public static void Draw(ref bool showLightSettings, LightSettings lightSettings, EditorStyleManager styleManager)
         {
             EditorGUILayout.BeginVertical("box");
@@ -15,7 +27,16 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             {
                 EditorGUI.indentLevel++;
                 
-                lightSettings.Type = (LightType)EditorGUILayout.EnumPopup(new GUIContent("Тип света", "Тип освещения: направленный или точечный"), lightSettings.Type);
+                // Находим текущий индекс в поддерживаемом массиве
+                int currentIndex = System.Array.IndexOf(supportedLightTypes, lightSettings.Type);
+                if (currentIndex < 0) currentIndex = 0; // По умолчанию Directional
+                
+                int newIndex = EditorGUILayout.Popup(new GUIContent("Тип света", "Тип освещения: направленный или точечный"), 
+                    currentIndex, supportedLightNames);
+                
+                // Применяем выбранный тип
+                if (newIndex != currentIndex)
+                    lightSettings.Type = supportedLightTypes[newIndex];
 
                 if (lightSettings.Type == LightType.Directional)
                 {
