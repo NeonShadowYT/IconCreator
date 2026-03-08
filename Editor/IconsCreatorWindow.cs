@@ -8,7 +8,7 @@ using UnityEngine;
 namespace NeonImperium.IconsCreation
 {
     public class IconsCreatorWindow : EditorWindow
-    {   
+    {
         [SerializeField] private string directory = "Assets/Icons/";
         [SerializeField] private string scenePath = "Assets/Plugins/NeonImperium/IconCreator/Scenes/Icons_Creation.unity";
         [SerializeField] private string presetsFolder = "Assets/Plugins/NeonImperium/IconCreator/Presets";
@@ -24,7 +24,7 @@ namespace NeonImperium.IconsCreation
         private PresetManager _presetManager;
         private Vector2 _scrollPosition;
         private Vector2 _previewScrollPosition;
-        
+
         private EditorStyleManager _styleManager;
         private bool _showSpawnSettings = true;
         private bool _showLightSettings = false;
@@ -45,8 +45,11 @@ namespace NeonImperium.IconsCreation
         private List<Object> _previousTargets = new();
         private bool _targetsChanged = false;
 
+        // Флаг, что путь к сцене некорректен
+        private bool _scenePathValid = true;
+
         [MenuItem("Neon Imperium/Создатель иконок")]
-        private static void OpenWindow() 
+        private static void OpenWindow()
         {
             IconsCreatorWindow window = GetWindow<IconsCreatorWindow>("Создатель иконок");
             window.minSize = new Vector2(400, 600);
@@ -56,8 +59,8 @@ namespace NeonImperium.IconsCreation
         {
             _styleManager = new EditorStyleManager();
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-            
-            if (!EditorApplication.isPlaying)
+
+            if (!EditorApplication.isPlaying && !BuildPipeline.isBuildingPlayer)
             {
                 InitializeServices();
             }
@@ -68,8 +71,8 @@ namespace NeonImperium.IconsCreation
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
             CleanupResources();
         }
-        
-        private void OnDestroy() 
+
+        private void OnDestroy()
         {
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
             CleanupResources();
@@ -82,14 +85,14 @@ namespace NeonImperium.IconsCreation
                 case PlayModeStateChange.ExitingEditMode:
                     CleanupResources();
                     break;
-                    
+
                 case PlayModeStateChange.EnteredEditMode:
-                    if (!EditorApplication.isPlaying)
+                    if (!EditorApplication.isPlaying && !BuildPipeline.isBuildingPlayer)
                     {
                         InitializeServices();
                     }
                     break;
-                    
+
                 case PlayModeStateChange.EnteredPlayMode:
                     CleanupResources();
                     Repaint();
@@ -101,10 +104,10 @@ namespace NeonImperium.IconsCreation
         {
             _iconCreator.InitializeEnvironment(scenePath);
             LoadSettings();
-            
+
             _presetManager = new PresetManager(presetsFolder);
             LoadCurrentPreset();
-            
+
             EditorApplication.update += OnEditorUpdate;
             CreateCurrentSettingsState();
             _previousTargets = new List<Object>(targets);
@@ -118,16 +121,16 @@ namespace NeonImperium.IconsCreation
             _iconCreator.Dispose();
             _styleManager?.Dispose();
             _styleManager = null;
-            
+
             PresetDrawer.ClearCache();
-            
+
             EditorApplication.update -= OnEditorUpdate;
         }
 
         private void OnEditorUpdate()
         {
             CheckTargetsChanged();
-            
+
             if (_previewNeedsUpdate)
             {
                 _previewNeedsUpdate = false;
@@ -156,12 +159,12 @@ namespace NeonImperium.IconsCreation
         private bool TargetsChanged(List<Object> oldTargets, List<Object> newTargets)
         {
             if (oldTargets.Count != newTargets.Count) return true;
-            
+
             for (int i = 0; i < oldTargets.Count; i++)
             {
                 if (oldTargets[i] != newTargets[i]) return true;
             }
-            
+
             return false;
         }
 
@@ -175,26 +178,26 @@ namespace NeonImperium.IconsCreation
             textureSettings.Compression = (TextureImporterCompression)EditorPrefs.GetInt("compression", (int)TextureImporterCompression.CompressedHQ);
             textureSettings.FilterMode = (FilterMode)EditorPrefs.GetInt("filterMode", (int)FilterMode.Point);
             textureSettings.AnisoLevel = EditorPrefs.GetInt("anisoLevel", 0);
-            
+
             cameraSettings.Rotation = LoadVector3("cameraRotation", new Vector3(45f, -45f, 0f));
-            
+
             lightSettings.Type = (LightType)EditorPrefs.GetInt("lightType", (int)LightType.Directional);
             lightSettings.DirectionalRotation = LoadVector3("directionalRotation", new Vector3(50f, -30f, 0f));
             lightSettings.DirectionalColor = LoadColor("directionalColor", Color.white);
             lightSettings.DirectionalIntensity = EditorPrefs.GetFloat("directionalIntensity", 1f);
-            
+
             for (int i = 0; i < lightSettings.PointLights.Length; i++)
             {
                 lightSettings.PointLights[i].Position = LoadVector3($"pointLight{i}Position", new Vector3(1, 0.5f, -0.5f));
                 lightSettings.PointLights[i].Color = LoadColor($"pointLight{i}Color", Color.white);
                 lightSettings.PointLights[i].Intensity = EditorPrefs.GetFloat($"pointLight{i}Intensity", 1f);
             }
-            
+
             shadowSettings.Enabled = EditorPrefs.GetBool("shadowEnabled", false);
             shadowSettings.Color = LoadColor("shadowColor", new Color(0f, 0f, 0f, 0.5f));
             shadowSettings.Offset = LoadVector2("shadowOffset", new Vector2(0.05f, -0.05f));
             shadowSettings.Scale = EditorPrefs.GetFloat("shadowScale", 0.95f);
-            
+
             cameraTag = EditorPrefs.GetString("cameraTag", "EditorOnly");
             objectsLayer = EditorPrefs.GetString("objectsLayer", "TransparentFX");
         }
@@ -222,26 +225,26 @@ namespace NeonImperium.IconsCreation
             EditorPrefs.SetInt("compression", (int)textureSettings.Compression);
             EditorPrefs.SetInt("filterMode", (int)textureSettings.FilterMode);
             EditorPrefs.SetInt("anisoLevel", textureSettings.AnisoLevel);
-            
+
             SaveVector3("cameraRotation", cameraSettings.Rotation);
-            
+
             EditorPrefs.SetInt("lightType", (int)lightSettings.Type);
             SaveVector3("directionalRotation", lightSettings.DirectionalRotation);
             SaveColor("directionalColor", lightSettings.DirectionalColor);
             EditorPrefs.SetFloat("directionalIntensity", lightSettings.DirectionalIntensity);
-            
+
             for (int i = 0; i < lightSettings.PointLights.Length; i++)
             {
                 SaveVector3($"pointLight{i}Position", lightSettings.PointLights[i].Position);
                 SaveColor($"pointLight{i}Color", lightSettings.PointLights[i].Color);
                 EditorPrefs.SetFloat($"pointLight{i}Intensity", lightSettings.PointLights[i].Intensity);
             }
-            
+
             EditorPrefs.SetBool("shadowEnabled", shadowSettings.Enabled);
             SaveColor("shadowColor", shadowSettings.Color);
             SaveVector2("shadowOffset", shadowSettings.Offset);
             EditorPrefs.SetFloat("shadowScale", shadowSettings.Scale);
-            
+
             EditorPrefs.SetString("cameraTag", cameraTag);
             EditorPrefs.SetString("objectsLayer", objectsLayer);
         }
@@ -302,7 +305,7 @@ namespace NeonImperium.IconsCreation
                 return;
             }
 
-            if (_styleManager == null) 
+            if (_styleManager == null)
                 _styleManager = new EditorStyleManager();
 
             if (_presetManager == null)
@@ -310,29 +313,29 @@ namespace NeonImperium.IconsCreation
 
             _styleManager.InitializeStyles();
             _styleManager.UpdateStyles(new Color(0.2f, 0.6f, 1f));
-            
+
             using (GUILayout.ScrollViewScope scroll = new GUILayout.ScrollViewScope(_scrollPosition))
             {
                 _scrollPosition = scroll.scrollPosition;
-                
+
                 DrawHeader();
-                
-                PresetDrawer.Draw(ref _showPresetSettings, _presetManager, ref presetsFolder, textureSettings, cameraSettings, 
+
+                PresetDrawer.Draw(ref _showPresetSettings, _presetManager, ref presetsFolder, textureSettings, cameraSettings,
                     lightSettings, shadowSettings, targets, scenePath, _styleManager);
-                    
+
                 SpawnSettingsDrawer.Draw(ref _showSpawnSettings, ref directory, ref cameraTag, ref objectsLayer,
                     ref scenePath, textureSettings, cameraSettings, _styleManager);
-                    
+
                 LightSettingsDrawer.Draw(ref _showLightSettings, lightSettings, _styleManager);
                 ShadowSettingsDrawer.Draw(ref _showShadowSettings, shadowSettings, _styleManager);
                 SpriteSettingsDrawer.Draw(ref _showSpriteSettings, textureSettings, _styleManager);
                 ObjectsSettingsDrawer.Draw(ref _showObjectsSettings, targets, _styleManager, new SerializedObject(this));
-                
+
                 if (HasValidTargets)
                 {
                     PreviewDrawer.Draw(_previewScrollPosition, _iconCreator.CameraPreviews, _data, HasValidTargets);
                 }
-                
+
                 ActionButtonsDrawer.Draw(targets, HasValidTargets, _iconCreator.IsGenerating, CreateIcons);
             }
 
@@ -345,12 +348,12 @@ namespace NeonImperium.IconsCreation
                     _previewNeedsUpdate = true;
                     _iconCreator.MarkPreviewDirty();
                 }
-                
+
                 if (_presetApplied)
                 {
                     _presetApplied = false;
                 }
-                
+
                 UpdateData();
             }
         }
@@ -370,7 +373,7 @@ namespace NeonImperium.IconsCreation
         private bool SettingsEqualsCurrentState()
         {
             if (_currentSettingsState == null) return false;
-            
+
             return textureSettings.Size == _currentSettingsState.textureSettings.Size &&
                    textureSettings.Compression == _currentSettingsState.textureSettings.Compression &&
                    textureSettings.FilterMode == _currentSettingsState.textureSettings.FilterMode &&
@@ -449,33 +452,33 @@ namespace NeonImperium.IconsCreation
         private void DrawPlayModeBlockedMessage()
         {
             EditorGUILayout.BeginVertical("box");
-            
+
             GUIStyle warningStyle = new GUIStyle(EditorStyles.boldLabel)
             {
                 fontSize = 16,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.yellow }
             };
-            
+
             EditorGUILayout.Space(20);
             EditorGUILayout.LabelField("🚫 Создатель иконок недоступен", warningStyle);
             EditorGUILayout.Space(10);
-            
+
             GUIStyle messageStyle = new GUIStyle(EditorStyles.label)
             {
                 alignment = TextAnchor.MiddleCenter,
                 wordWrap = true
             };
-            
+
             EditorGUILayout.LabelField("Инструмент отключен во время Play Mode.", messageStyle);
-            
+
             EditorGUILayout.Space(20);
-            
+
             if (GUILayout.Button("Выйти из Play Mode", GUILayout.Height(30)))
             {
                 EditorApplication.isPlaying = false;
             }
-            
+
             EditorGUILayout.Space(20);
             EditorGUILayout.EndVertical();
         }
@@ -491,8 +494,8 @@ namespace NeonImperium.IconsCreation
         private void UpdateData()
         {
             if (!HasValidTargets) return;
-            
-            _data = new IconsCreatorData(textureSettings, cameraSettings, lightSettings, shadowSettings, 
+
+            _data = new IconsCreatorData(textureSettings, cameraSettings, lightSettings, shadowSettings,
                 directory, targets, cameraTag, objectsLayer);
             _iconCreator.SetData(_data);
         }
@@ -500,7 +503,7 @@ namespace NeonImperium.IconsCreation
         private void CreateIcons()
         {
             if (!HasValidTargets) return;
-            
+
             UpdateData();
             _iconCreator.CreateIconsAsync();
         }
@@ -511,11 +514,11 @@ namespace NeonImperium.IconsCreation
             textureSettings.FilterMode = preset.textureSettings.FilterMode;
             textureSettings.AnisoLevel = preset.textureSettings.AnisoLevel;
             textureSettings.Size = preset.textureSettings.Size;
-            
+
             cameraSettings.Rotation = preset.cameraSettings.Rotation;
             cameraSettings.Padding = preset.cameraSettings.Padding;
             cameraSettings.RenderShadows = preset.cameraSettings.RenderShadows;
-            
+
             lightSettings.Type = preset.lightSettings.Type;
             lightSettings.DirectionalRotation = preset.lightSettings.DirectionalRotation;
             lightSettings.DirectionalColor = preset.lightSettings.DirectionalColor;
@@ -527,14 +530,14 @@ namespace NeonImperium.IconsCreation
                 lightSettings.PointLights[i].Color = preset.lightSettings.PointLights[i].Color;
                 lightSettings.PointLights[i].Intensity = preset.lightSettings.PointLights[i].Intensity;
             }
-            
+
             shadowSettings.Enabled = preset.shadowSettings.Enabled;
             shadowSettings.Color = preset.shadowSettings.Color;
             shadowSettings.Offset = preset.shadowSettings.Offset;
             shadowSettings.Scale = preset.shadowSettings.Scale;
-            
+
             EditorPrefs.SetString("currentPresetName", preset.presetName);
-            
+
             _previewNeedsUpdate = true;
             _iconCreator.MarkPreviewDirty();
             _settingsChangedSinceLastPreview = true;

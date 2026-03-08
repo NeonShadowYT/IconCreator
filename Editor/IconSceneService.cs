@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -20,22 +21,41 @@ namespace NeonImperium.IconsCreation
 
         public void EnsureSceneExists(string scenePath)
         {
-            if (EditorApplication.isPlaying) return;
-            if (File.Exists(Path.GetFullPath(scenePath))) return;
-            
+            // Не выполняем во время сборки или игры
+            if (EditorApplication.isPlaying || BuildPipeline.isBuildingPlayer)
+                return;
+
+            if (string.IsNullOrEmpty(scenePath) || !scenePath.StartsWith("Assets/"))
+                return;
+
+            // Если файл сцены уже существует - ничего не делаем
+            if (File.Exists(Path.GetFullPath(scenePath)))
+                return;
+
             try
             {
                 CreateScene(scenePath);
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-                Debug.LogError($"Failed to create scene: {e.Message}");
+                // Не выводим ошибку в консоль, просто игнорируем
+                // При желании можно показать предупреждение в интерфейсе через статический флаг
+                Debug.unityLogger.Log(LogType.Warning, $"Не удалось создать сцену: {e.Message}");
             }
         }
 
         private void CreateScene(string scenePath)
         {
-            if (EditorApplication.isPlaying) return;
+            if (EditorApplication.isPlaying || BuildPipeline.isBuildingPlayer)
+                return;
+
+            // Убедимся, что директория существует
+            string directory = Path.GetDirectoryName(scenePath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+                AssetDatabase.Refresh();
+            }
 
             Scene previous = EditorSceneManager.GetActiveScene();
             Scene scene = default;
@@ -45,12 +65,13 @@ namespace NeonImperium.IconsCreation
                 string sceneName = Path.GetFileNameWithoutExtension(scenePath);
                 scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
                 scene.name = sceneName;
-                
+
                 EditorSceneManager.SaveScene(scene, scenePath);
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-                Debug.LogError($"Failed to create scene: {e.Message}");
+                // Подавляем исключение, чтобы не засорять консоль
+                Debug.unityLogger.Log(LogType.Warning, $"Ошибка при сохранении сцены: {e.Message}");
             }
             finally
             {
@@ -60,37 +81,35 @@ namespace NeonImperium.IconsCreation
             }
         }
 
-        public void ExecuteWithTarget(GameObject target, string targetName, LightSettings lightSettings, bool renderShadows, 
+        public void ExecuteWithTarget(GameObject target, string targetName, LightSettings lightSettings, bool renderShadows,
                                     string cameraTag, string objectsLayer, string scenePath, Action<GameObject> action)
         {
-            if (EditorApplication.isPlaying || _isOperating)
-            {
+            if (EditorApplication.isPlaying || _isOperating || BuildPipeline.isBuildingPlayer)
                 return;
-            }
 
             _isOperating = true;
-            
+
             try
             {
                 _lightSettings = lightSettings;
                 OpenScene(scenePath);
-                
+
                 if (!_iconScene.IsValid()) return;
 
                 CleanupPreviousTarget();
                 SetupSceneCamera(cameraTag);
-                
+
                 _currentTargetInstance = InstantiateTarget(target, targetName);
                 if (_currentTargetInstance == null) return;
 
                 SetupTargetLayer(_currentTargetInstance, objectsLayer, renderShadows);
                 SetupSceneLighting(objectsLayer);
-                
+
                 action?.Invoke(_currentTargetInstance);
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-                Debug.LogError($"Failed to execute with target: {e.Message}");
+                Debug.unityLogger.Log(LogType.Warning, $"Ошибка при обработке цели: {e.Message}");
             }
             finally
             {
@@ -102,7 +121,8 @@ namespace NeonImperium.IconsCreation
 
         private void OpenScene(string scenePath)
         {
-            if (EditorApplication.isPlaying) return;
+            if (EditorApplication.isPlaying || BuildPipeline.isBuildingPlayer)
+                return;
 
             try
             {
@@ -110,16 +130,17 @@ namespace NeonImperium.IconsCreation
                 _iconScene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
                 EditorSceneManager.SetActiveScene(_iconScene);
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-                Debug.LogError($"Failed to open scene: {e.Message}");
+                Debug.unityLogger.Log(LogType.Warning, $"Не удалось открыть сцену: {e.Message}");
                 _iconScene = default;
             }
         }
 
         private GameObject InstantiateTarget(GameObject original, string targetName)
         {
-            if (EditorApplication.isPlaying) return null;
+            if (EditorApplication.isPlaying || BuildPipeline.isBuildingPlayer)
+                return null;
 
             try
             {
@@ -128,9 +149,9 @@ namespace NeonImperium.IconsCreation
                 SceneManager.MoveGameObjectToScene(instance, _iconScene);
                 return instance;
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-                Debug.LogError($"Failed to instantiate target: {e.Message}");
+                Debug.unityLogger.Log(LogType.Warning, $"Не удалось инстанциировать цель: {e.Message}");
                 return null;
             }
         }
@@ -142,7 +163,7 @@ namespace NeonImperium.IconsCreation
                 UnityEngine.Object.DestroyImmediate(_currentTargetInstance);
                 _currentTargetInstance = null;
             }
-            
+
             CleanupLights();
         }
 
@@ -172,7 +193,7 @@ namespace NeonImperium.IconsCreation
                         break;
                     }
                 }
-                
+
                 if (_sceneCamera == null)
                 {
                     GameObject cameraGO = new GameObject("IconsCreator_Camera");
@@ -199,10 +220,10 @@ namespace NeonImperium.IconsCreation
                 foreach (Transform child in target.GetComponentsInChildren<Transform>())
                 {
                     child.gameObject.layer = layer;
-                    
+
                     if (child.TryGetComponent<MeshRenderer>(out MeshRenderer renderer))
                     {
-                        renderer.shadowCastingMode = renderShadows ? 
+                        renderer.shadowCastingMode = renderShadows ?
                             ShadowCastingMode.On : ShadowCastingMode.Off;
                         renderer.receiveShadows = renderShadows;
                     }
@@ -214,9 +235,9 @@ namespace NeonImperium.IconsCreation
         {
             int cullingMask = LayerMask.GetMask(objectsLayer);
             if (cullingMask == 0) cullingMask = LayerMask.GetMask("Default");
-            
+
             CleanupLights();
-            
+
             if (_lightSettings.Type == LightType.Directional)
             {
                 CreateDirectionalLight(cullingMask);
@@ -225,7 +246,7 @@ namespace NeonImperium.IconsCreation
             {
                 CreatePointLights(cullingMask);
             }
-            
+
             SetupCameraCullingMask(cullingMask);
         }
 
@@ -240,14 +261,14 @@ namespace NeonImperium.IconsCreation
             light.cullingMask = cullingMask;
             light.shadows = LightShadows.Soft;
             SceneManager.MoveGameObjectToScene(lightGo, _iconScene);
-            
+
             _createdLights = new GameObject[] { lightGo };
         }
 
         private void CreatePointLights(int cullingMask)
         {
             _createdLights = new GameObject[_lightSettings.PointLights.Length];
-            
+
             for (int i = 0; i < _lightSettings.PointLights.Length; i++)
             {
                 LightSettings.PointLightData pointLight = _lightSettings.PointLights[i];
@@ -261,7 +282,7 @@ namespace NeonImperium.IconsCreation
                 light.range = 10f;
                 light.shadows = LightShadows.Soft;
                 SceneManager.MoveGameObjectToScene(lightGo, _iconScene);
-                
+
                 _createdLights[i] = lightGo;
             }
         }
@@ -277,23 +298,23 @@ namespace NeonImperium.IconsCreation
             try
             {
                 CleanupPreviousTarget();
-                
+
                 if (_previousScene.IsValid())
                 {
                     EditorSceneManager.SetActiveScene(_previousScene);
                 }
-                
+
                 if (_iconScene.IsValid())
                 {
                     EditorSceneManager.CloseScene(_iconScene, true);
                 }
-                
+
                 _sceneCamera = null;
                 _iconScene = default;
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-                Debug.LogError($"Failed to close scene: {e.Message}");
+                Debug.unityLogger.Log(LogType.Warning, $"Ошибка при закрытии сцены: {e.Message}");
             }
         }
     }

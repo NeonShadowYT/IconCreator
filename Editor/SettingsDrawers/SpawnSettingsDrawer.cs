@@ -1,3 +1,4 @@
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,13 +13,13 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             ref string scenePath, TextureSettings textureSettings, CameraSettings cameraSettings, EditorStyleManager styleManager)
         {
             EditorGUILayout.BeginVertical("box");
-            showSpawnSettings = EditorGUILayout.Foldout(showSpawnSettings, "⚙️ Настройки иконки", 
+            showSpawnSettings = EditorGUILayout.Foldout(showSpawnSettings, "⚙️ Настройки иконки",
                 styleManager?.FoldoutStyle ?? EditorStyles.foldout);
-            
+
             if (showSpawnSettings)
             {
                 EditorGUI.indentLevel++;
-                
+
                 DrawScenePathField(ref scenePath);
                 DrawDirectoryField(ref directory);
                 DrawCameraTagField(ref cameraTag);
@@ -27,7 +28,7 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
                 DrawPaddingSlider(cameraSettings);
                 DrawRotationField(cameraSettings);
                 DrawShadowsToggle(cameraSettings);
-                
+
                 EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndVertical();
@@ -48,6 +49,22 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
                 }
             }
             EditorGUILayout.EndHorizontal();
+
+            // Валидация пути к сцене
+            if (!IsScenePathValid(scenePath))
+            {
+                EditorGUILayout.HelpBox("Путь к сцене некорректен. Сцена будет создана автоматически при необходимости.", MessageType.Warning);
+            }
+        }
+
+        private static bool IsScenePathValid(string path)
+        {
+            if (string.IsNullOrEmpty(path) || !path.StartsWith("Assets/"))
+                return false;
+
+            // Проверяем, можно ли создать директорию (если её нет)
+            string directory = Path.GetDirectoryName(path);
+            return !string.IsNullOrEmpty(directory);
         }
 
         private static void DrawDirectoryField(ref string directory)
@@ -62,6 +79,11 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
                     directory = "Assets" + path.Substring(Application.dataPath.Length);
             }
             EditorGUILayout.EndHorizontal();
+
+            if (string.IsNullOrEmpty(directory) || !directory.StartsWith("Assets/"))
+            {
+                EditorGUILayout.HelpBox("Укажите корректную папку сохранения (начинающуюся с Assets/)", MessageType.Warning);
+            }
         }
 
         private static void DrawCameraTagField(ref string cameraTag)
@@ -69,7 +91,7 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             string[] tags = UnityEditorInternal.InternalEditorUtility.tags;
             int currentIndex = System.Array.IndexOf(tags, cameraTag);
             if (currentIndex == -1) currentIndex = 0;
-            
+
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(new GUIContent("Тег камеры", "Тег для временной камеры, используется для изоляции"), GUILayout.Width(120));
             int newIndex = EditorGUILayout.Popup(currentIndex, tags);
@@ -85,7 +107,7 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             string[] layers = UnityEditorInternal.InternalEditorUtility.layers;
             int currentIndex = System.Array.IndexOf(layers, objectsLayer);
             if (currentIndex == -1) currentIndex = 0;
-            
+
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(new GUIContent("Слой объектов", "Слой для объектов на сцене создания иконок"), GUILayout.Width(120));
             int newIndex = EditorGUILayout.Popup(currentIndex, layers);
@@ -100,13 +122,13 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(new GUIContent("Размер иконки", "Размер текстуры в пикселях"), GUILayout.Width(120));
-            
+
             int currentSizeIndex = System.Array.IndexOf(SIZE_OPTIONS, textureSettings.Size);
             if (currentSizeIndex == -1) currentSizeIndex = 4;
-            
+
             int newSizeIndex = EditorGUILayout.Popup(currentSizeIndex, SIZE_OPTIONS_STR);
             textureSettings.Size = SIZE_OPTIONS[newSizeIndex];
-            
+
             EditorGUILayout.EndHorizontal();
         }
 
