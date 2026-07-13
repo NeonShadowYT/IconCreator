@@ -9,17 +9,33 @@ namespace NeonImperium.IconsCreation
     {
         private string _directory;
         private TextureSettings _textureSettings;
-        private readonly Dictionary<string, EditorApplication.CallbackFunction> _pendingCallbacks = new();
+        private readonly Dictionary<string, EditorApplication.CallbackFunction> _pendingCallbacks = new Dictionary<string, EditorApplication.CallbackFunction>();
 
         public void Initialize(string directory, TextureSettings textureSettings)
         {
-            _directory = directory;
+            _directory = ValidateDirectoryPath(directory);
             _textureSettings = textureSettings;
+        }
+
+        private string ValidateDirectoryPath(string directory)
+        {
+            if (string.IsNullOrEmpty(directory))
+                return "Assets/Icons/";
+
+            directory = directory.Replace('\\', '/');
+            if (!directory.StartsWith("Assets/"))
+                directory = "Assets/" + directory.TrimStart('/');
+
+            if (!directory.EndsWith("/"))
+                directory += "/";
+
+            return directory;
         }
 
         public void SaveIcon(Texture2D texture, string name)
         {
             if (texture == null) return;
+            if (string.IsNullOrEmpty(_directory)) return;
 
             try
             {
@@ -68,7 +84,7 @@ namespace NeonImperium.IconsCreation
             string relativePath = _directory.TrimStart('/');
             
             if (relativePath.StartsWith("Assets/"))
-                relativePath = relativePath[7..];
+                relativePath = relativePath.Substring(7);
             
             string directoryPath = Path.Combine(Application.dataPath, relativePath);
             return Path.Combine(directoryPath, cleanName + ".png");
@@ -77,7 +93,7 @@ namespace NeonImperium.IconsCreation
         private void EnsureDirectoryExists(string fullPath)
         {
             string directory = Path.GetDirectoryName(fullPath);
-            if (!Directory.Exists(directory))
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
         }
 
@@ -115,7 +131,11 @@ namespace NeonImperium.IconsCreation
                 ConfigureTextureImporter(importer);
                 importer.SaveAndReimport();
                 
-                EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Texture2D>(relativePath));
+                Texture2D importedTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(relativePath);
+                if (importedTexture != null)
+                {
+                    EditorGUIUtility.PingObject(importedTexture);
+                }
             }
             catch (System.Exception e)
             {

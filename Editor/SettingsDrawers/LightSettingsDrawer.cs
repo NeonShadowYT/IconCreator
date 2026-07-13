@@ -17,24 +17,24 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             "Point (Точечный)" 
         };
 
-        public static void Draw(ref bool showLightSettings, LightSettings lightSettings, EditorStyleManager styleManager)
+        public static void Draw(ref bool showLightSettings, LightSettings lightSettings, EditorStyleManager styleManager, Color headerColor)
         {
             EditorGUILayout.BeginVertical("box");
-            showLightSettings = EditorGUILayout.Foldout(showLightSettings, "💡 Освещение", 
+            string colorHex = ColorUtility.ToHtmlStringRGB(headerColor);
+            string label = $"💡 <color=#{colorHex}>Освещение</color>";
+            showLightSettings = EditorGUILayout.Foldout(showLightSettings, label, 
                 styleManager?.FoldoutStyle ?? EditorStyles.foldout);
             
             if (showLightSettings)
             {
                 EditorGUI.indentLevel++;
                 
-                // Находим текущий индекс в поддерживаемом массиве
                 int currentIndex = System.Array.IndexOf(supportedLightTypes, lightSettings.Type);
-                if (currentIndex < 0) currentIndex = 0; // По умолчанию Directional
+                if (currentIndex < 0) currentIndex = 0;
                 
                 int newIndex = EditorGUILayout.Popup(new GUIContent("Тип света", "Тип освещения: направленный или точечный"), 
                     currentIndex, supportedLightNames);
                 
-                // Применяем выбранный тип
                 if (newIndex != currentIndex)
                     lightSettings.Type = supportedLightTypes[newIndex];
 

@@ -11,19 +11,32 @@ namespace NeonImperium.IconsCreation
 
         public PresetManager(string presetsFolder)
         {
-            _presetsFolder = presetsFolder;
+            _presetsFolder = ValidateFolderPath(presetsFolder);
             EnsurePresetsFolderExists();
         }
 
         public void SetPresetsFolder(string folder)
         {
-            _presetsFolder = folder;
+            _presetsFolder = ValidateFolderPath(folder);
             EnsurePresetsFolderExists();
+        }
+
+        private string ValidateFolderPath(string folder)
+        {
+            if (string.IsNullOrEmpty(folder))
+                return "Assets/Plugins/NeonImperium/IconCreator/Presets";
+
+            folder = folder.Replace('\\', '/');
+            if (!folder.StartsWith("Assets/"))
+                folder = "Assets/" + folder.TrimStart('/');
+
+            return folder;
         }
 
         public void SavePreset(PresetData presetData)
         {
             if (EditorApplication.isPlaying) return;
+            if (string.IsNullOrEmpty(_presetsFolder)) return;
 
             string filePath = Path.Combine(_presetsFolder, $"{presetData.presetName}.json");
             string json = JsonUtility.ToJson(presetData, true);
@@ -35,18 +48,32 @@ namespace NeonImperium.IconsCreation
 
         public List<PresetData> LoadAllPresets()
         {
-            List<PresetData> presets = new();
+            List<PresetData> presets = new List<PresetData>();
             
-            if (!Directory.Exists(_presetsFolder))
+            if (string.IsNullOrEmpty(_presetsFolder) || !Directory.Exists(_presetsFolder))
                 return presets;
 
             string[] jsonFiles = Directory.GetFiles(_presetsFolder, "*.json");
             
             foreach (string filePath in jsonFiles)
             {
-                string json = File.ReadAllText(filePath);
-                PresetData preset = JsonUtility.FromJson<PresetData>(json);
-                presets.Add(preset);
+                try
+                {
+                    string json = File.ReadAllText(filePath);
+                    PresetData preset = JsonUtility.FromJson<PresetData>(json);
+                    if (preset != null && !string.IsNullOrEmpty(preset.presetName))
+                    {
+                        presets.Add(preset);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"Preset file {filePath} contains invalid data and will be skipped.");
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning($"Failed to load preset from {filePath}: {ex.Message}. Skipping.");
+                }
             }
 
             return presets;
@@ -54,18 +81,38 @@ namespace NeonImperium.IconsCreation
 
         public PresetData LoadPreset(string presetName)
         {
+            if (string.IsNullOrEmpty(_presetsFolder) || string.IsNullOrEmpty(presetName))
+                return null;
+
             string filePath = Path.Combine(_presetsFolder, $"{presetName}.json");
-            if (File.Exists(filePath))
+            if (!File.Exists(filePath))
+                return null;
+
+            try
             {
                 string json = File.ReadAllText(filePath);
-                return JsonUtility.FromJson<PresetData>(json);
+                PresetData preset = JsonUtility.FromJson<PresetData>(json);
+                if (preset != null && !string.IsNullOrEmpty(preset.presetName))
+                {
+                    return preset;
+                }
+                else
+                {
+                    Debug.LogWarning($"Preset file {filePath} contains invalid data.");
+                    return null;
+                }
             }
-            return null;
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to load preset {presetName}: {ex.Message}");
+                return null;
+            }
         }
 
         public void DeletePreset(string presetName)
         {
             if (EditorApplication.isPlaying) return;
+            if (string.IsNullOrEmpty(_presetsFolder) || string.IsNullOrEmpty(presetName)) return;
 
             string filePath = Path.Combine(_presetsFolder, $"{presetName}.json");
             string metaFilePath = filePath + ".meta";
@@ -86,25 +133,25 @@ namespace NeonImperium.IconsCreation
             GameObject previewTarget = GetPreviewTarget(targets);
             if (previewTarget == null) return null;
             
+            Texture2D preview = null;
             try
             {
-                IconsCreatorData tempData = new(
+                IconsCreatorData tempData = new IconsCreatorData(
                     preset.textureSettings,
                     preset.cameraSettings,
                     preset.lightSettings,
                     preset.shadowSettings,
-                    "Assets/Icons/", // directory - не используется в превью
+                    "Assets/Icons/",
                     new List<Object> { previewTarget },
-                    "EditorOnly", // cameraTag - не используется в превью
-                    "Default" // objectsLayer - не используется в превью
+                    "EditorOnly",
+                    "Default"
                 );
 
-                IconSceneService sceneService = new();
-                IconCameraService cameraService = new();
+                IconSceneService sceneService = new IconSceneService();
+                IconCameraService cameraService = new IconCameraService();
                 
                 cameraService.Initialize(preset.textureSettings, preset.cameraSettings, preset.shadowSettings, "EditorOnly");
                 
-                Texture2D preview = null;
                 sceneService.ExecuteWithTarget(previewTarget, previewTarget.name, preset.lightSettings, 
                     preset.cameraSettings.RenderShadows, "EditorOnly", "Default", scenePath, target =>
                 {
@@ -116,14 +163,22 @@ namespace NeonImperium.IconsCreation
                 });
 
                 cameraService.Cleanup();
-                
                 return preview;
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to generate preview for preset {preset.presetName}: {ex.Message}");
+                if (preview != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(preview);
+                }
+                return null;
             }
             finally
             {
                 if (previewTarget.name == "PreviewCube")
                 {
-                    Object.DestroyImmediate(previewTarget);
+                    UnityEngine.Object.DestroyImmediate(previewTarget);
                 }
             }
         }
@@ -150,6 +205,7 @@ namespace NeonImperium.IconsCreation
         private void EnsurePresetsFolderExists()
         {
             if (EditorApplication.isPlaying) return;
+            if (string.IsNullOrEmpty(_presetsFolder)) return;
 
             if (!Directory.Exists(_presetsFolder))
             {

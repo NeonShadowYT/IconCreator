@@ -10,10 +10,12 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
         private static readonly string[] SIZE_OPTIONS_STR = { "32px", "64px", "128px", "256px", "512px", "1024px", "2048px" };
 
         public static void Draw(ref bool showSpawnSettings, ref string directory, ref string cameraTag, ref string objectsLayer,
-            ref string scenePath, TextureSettings textureSettings, CameraSettings cameraSettings, EditorStyleManager styleManager)
+            ref string scenePath, TextureSettings textureSettings, CameraSettings cameraSettings, EditorStyleManager styleManager, Color headerColor)
         {
             EditorGUILayout.BeginVertical("box");
-            showSpawnSettings = EditorGUILayout.Foldout(showSpawnSettings, "⚙️ Настройки иконки",
+            string colorHex = ColorUtility.ToHtmlStringRGB(headerColor);
+            string label = $"⚙️ <color=#{colorHex}>Настройки иконки</color>";
+            showSpawnSettings = EditorGUILayout.Foldout(showSpawnSettings, label,
                 styleManager?.FoldoutStyle ?? EditorStyles.foldout);
 
             if (showSpawnSettings)
@@ -50,7 +52,6 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             }
             EditorGUILayout.EndHorizontal();
 
-            // Валидация пути к сцене
             if (!IsScenePathValid(scenePath))
             {
                 EditorGUILayout.HelpBox("Путь к сцене некорректен. Сцена будет создана автоматически при необходимости.", MessageType.Warning);
@@ -62,7 +63,6 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             if (string.IsNullOrEmpty(path) || !path.StartsWith("Assets/"))
                 return false;
 
-            // Проверяем, можно ли создать директорию (если её нет)
             string directory = Path.GetDirectoryName(path);
             return !string.IsNullOrEmpty(directory);
         }

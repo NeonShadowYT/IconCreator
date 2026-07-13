@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿#if UNITY_EDITOR
+using UnityEditor;
 using UnityEngine;
 
 namespace NeonImperium.IconsCreation.Helpers
@@ -103,3 +104,4 @@ namespace NeonImperium.IconsCreation.Helpers
         }
     }
 }
+#endif

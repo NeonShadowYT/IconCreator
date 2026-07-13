@@ -7,10 +7,12 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
     public static class ObjectsSettingsDrawer
     {
         public static void Draw(ref bool showObjectsSettings, List<Object> targets, 
-            EditorStyleManager styleManager, SerializedObject serializedObject)
+            EditorStyleManager styleManager, SerializedObject serializedObject, Color headerColor)
         {
             EditorGUILayout.BeginVertical("box");
-            showObjectsSettings = EditorGUILayout.Foldout(showObjectsSettings, "🎯 Объекты", 
+            string colorHex = ColorUtility.ToHtmlStringRGB(headerColor);
+            string label = $"🎯 <color=#{colorHex}>Объекты</color>";
+            showObjectsSettings = EditorGUILayout.Foldout(showObjectsSettings, label, 
                 styleManager?.FoldoutStyle ?? EditorStyles.foldout);
             
             if (showObjectsSettings)

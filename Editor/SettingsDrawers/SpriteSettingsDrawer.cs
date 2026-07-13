@@ -5,10 +5,12 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
 {
     public static class SpriteSettingsDrawer
     {
-        public static void Draw(ref bool showSpriteSettings, TextureSettings textureSettings, EditorStyleManager styleManager)
+        public static void Draw(ref bool showSpriteSettings, TextureSettings textureSettings, EditorStyleManager styleManager, Color headerColor)
         {
             EditorGUILayout.BeginVertical("box");
-            showSpriteSettings = EditorGUILayout.Foldout(showSpriteSettings, "🖌️ Текстура", 
+            string colorHex = ColorUtility.ToHtmlStringRGB(headerColor);
+            string label = $"🖌️ <color=#{colorHex}>Текстура</color>";
+            showSpriteSettings = EditorGUILayout.Foldout(showSpriteSettings, label, 
                 styleManager?.FoldoutStyle ?? EditorStyles.foldout);
             
             if (showSpriteSettings)

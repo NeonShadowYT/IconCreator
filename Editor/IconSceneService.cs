@@ -21,14 +21,12 @@ namespace NeonImperium.IconsCreation
 
         public void EnsureSceneExists(string scenePath)
         {
-            // Не выполняем во время сборки или игры
             if (EditorApplication.isPlaying || BuildPipeline.isBuildingPlayer)
                 return;
 
             if (string.IsNullOrEmpty(scenePath) || !scenePath.StartsWith("Assets/"))
                 return;
 
-            // Если файл сцены уже существует - ничего не делаем
             if (File.Exists(Path.GetFullPath(scenePath)))
                 return;
 
@@ -38,8 +36,6 @@ namespace NeonImperium.IconsCreation
             }
             catch (Exception e)
             {
-                // Не выводим ошибку в консоль, просто игнорируем
-                // При желании можно показать предупреждение в интерфейсе через статический флаг
                 Debug.unityLogger.Log(LogType.Warning, $"Не удалось создать сцену: {e.Message}");
             }
         }
@@ -49,7 +45,6 @@ namespace NeonImperium.IconsCreation
             if (EditorApplication.isPlaying || BuildPipeline.isBuildingPlayer)
                 return;
 
-            // Убедимся, что директория существует
             string directory = Path.GetDirectoryName(scenePath);
             if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             {
@@ -70,7 +65,6 @@ namespace NeonImperium.IconsCreation
             }
             catch (Exception e)
             {
-                // Подавляем исключение, чтобы не засорять консоль
                 Debug.unityLogger.Log(LogType.Warning, $"Ошибка при сохранении сцены: {e.Message}");
             }
             finally
@@ -94,7 +88,11 @@ namespace NeonImperium.IconsCreation
                 _lightSettings = lightSettings;
                 OpenScene(scenePath);
 
-                if (!_iconScene.IsValid()) return;
+                if (!_iconScene.IsValid())
+                {
+                    Debug.LogWarning("Icon scene is not valid, aborting operation.");
+                    return;
+                }
 
                 CleanupPreviousTarget();
                 SetupSceneCamera(cameraTag);
@@ -134,6 +132,7 @@ namespace NeonImperium.IconsCreation
             {
                 Debug.unityLogger.Log(LogType.Warning, $"Не удалось открыть сцену: {e.Message}");
                 _iconScene = default;
+                _isOperating = false;
             }
         }
 
@@ -182,29 +181,31 @@ namespace NeonImperium.IconsCreation
 
         private void SetupSceneCamera(string cameraTag)
         {
-            if (_sceneCamera == null || !_sceneCamera.CompareTag(cameraTag))
+            if (_sceneCamera != null && _sceneCamera.CompareTag(cameraTag) && _sceneCamera.gameObject.scene == _iconScene)
             {
-                _sceneCamera = null;
-                foreach (GameObject root in _iconScene.GetRootGameObjects())
-                {
-                    if (root.TryGetComponent<Camera>(out Camera camera) && camera.CompareTag(cameraTag))
-                    {
-                        _sceneCamera = camera;
-                        break;
-                    }
-                }
+                return;
+            }
 
-                if (_sceneCamera == null)
+            _sceneCamera = null;
+            foreach (GameObject root in _iconScene.GetRootGameObjects())
+            {
+                if (root.TryGetComponent<Camera>(out Camera camera) && camera.CompareTag(cameraTag))
                 {
-                    GameObject cameraGO = new GameObject("IconsCreator_Camera");
-                    _sceneCamera = cameraGO.AddComponent<Camera>();
-                    _sceneCamera.tag = cameraTag;
-                    _sceneCamera.clearFlags = CameraClearFlags.SolidColor;
-                    _sceneCamera.backgroundColor = Color.clear;
-                    _sceneCamera.orthographic = true;
-                    cameraGO.SetActive(false);
-                    SceneManager.MoveGameObjectToScene(cameraGO, _iconScene);
+                    _sceneCamera = camera;
+                    break;
                 }
+            }
+
+            if (_sceneCamera == null)
+            {
+                GameObject cameraGO = new GameObject("IconsCreator_Camera");
+                _sceneCamera = cameraGO.AddComponent<Camera>();
+                _sceneCamera.tag = cameraTag;
+                _sceneCamera.clearFlags = CameraClearFlags.SolidColor;
+                _sceneCamera.backgroundColor = Color.clear;
+                _sceneCamera.orthographic = true;
+                cameraGO.SetActive(false);
+                SceneManager.MoveGameObjectToScene(cameraGO, _iconScene);
             }
         }
 
@@ -315,6 +316,8 @@ namespace NeonImperium.IconsCreation
             catch (Exception e)
             {
                 Debug.unityLogger.Log(LogType.Warning, $"Ошибка при закрытии сцены: {e.Message}");
+                _iconScene = default;
+                _sceneCamera = null;
             }
         }
     }

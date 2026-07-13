@@ -11,6 +11,7 @@ namespace NeonImperium.IconsCreation
         public GUIStyle HelpBoxStyle { get; private set; }
         public GUIStyle MiniLabelStyle { get; private set; }
         public Texture2D SolidColorTexture { get; private set; }
+        public Color HeaderColor { get; private set; }
 
         private bool _isInitialized = false;
 
@@ -25,16 +26,19 @@ namespace NeonImperium.IconsCreation
                 HeaderStyle.fontSize = 18;
                 HeaderStyle.alignment = TextAnchor.MiddleCenter;
                 HeaderStyle.margin = new RectOffset(0, 0, 10, 10);
+                HeaderStyle.richText = true;
 
                 CenteredLabelStyle = CreateSafeStyle(() => new GUIStyle(EditorStyles.label));
                 CenteredLabelStyle.alignment = TextAnchor.MiddleCenter;
                 CenteredLabelStyle.fontSize = 12;
                 CenteredLabelStyle.fontStyle = FontStyle.Italic;
                 CenteredLabelStyle.wordWrap = true;
+                CenteredLabelStyle.richText = true;
 
                 FoldoutStyle = CreateSafeStyle(() => new GUIStyle(EditorStyles.foldout));
                 FoldoutStyle.fontStyle = FontStyle.Bold;
                 FoldoutStyle.fontSize = 13;
+                FoldoutStyle.richText = true;
 
                 HelpBoxStyle = CreateSafeStyle(() => new GUIStyle(EditorStyles.helpBox));
                 HelpBoxStyle.fontSize = 11;
@@ -92,25 +96,40 @@ namespace NeonImperium.IconsCreation
 
         private void CreateFallbackStyles()
         {
-            HeaderStyle = new GUIStyle();
-            HeaderStyle.fontStyle = FontStyle.Bold;
-            HeaderStyle.fontSize = 18;
-            HeaderStyle.alignment = TextAnchor.MiddleCenter;
+            HeaderStyle = new GUIStyle
+            {
+                fontStyle = FontStyle.Bold,
+                fontSize = 18,
+                alignment = TextAnchor.MiddleCenter,
+                richText = true
+            };
 
-            CenteredLabelStyle = new GUIStyle();
-            CenteredLabelStyle.alignment = TextAnchor.MiddleCenter;
-            CenteredLabelStyle.wordWrap = true;
+            CenteredLabelStyle = new GUIStyle
+            {
+                alignment = TextAnchor.MiddleCenter,
+                wordWrap = true,
+                richText = true
+            };
 
-            FoldoutStyle = new GUIStyle();
-            FoldoutStyle.fontStyle = FontStyle.Bold;
+            FoldoutStyle = new GUIStyle
+            {
+                fontStyle = FontStyle.Bold,
+                richText = true
+            };
 
-            HelpBoxStyle = new GUIStyle();
-            HelpBoxStyle.wordWrap = true;
-            HelpBoxStyle.padding = new RectOffset(8, 8, 6, 6);
+            HelpBoxStyle = new GUIStyle
+            {
+                wordWrap = true,
+                padding = new RectOffset(8, 8, 6, 6),
+                richText = true
+            };
 
-            MiniLabelStyle = new GUIStyle();
-            MiniLabelStyle.wordWrap = true;
-            MiniLabelStyle.fontSize = 11;
+            MiniLabelStyle = new GUIStyle
+            {
+                wordWrap = true,
+                fontSize = 11,
+                richText = true
+            };
         }
 
         public void UpdateStyles(Color headerColor)
@@ -121,14 +140,10 @@ namespace NeonImperium.IconsCreation
                 return;
             }
 
+            HeaderColor = headerColor;
+
             try
             {
-                if (HeaderStyle != null)
-                    HeaderStyle.normal.textColor = headerColor;
-
-                if (FoldoutStyle != null)
-                    FoldoutStyle.normal.textColor = Color.Lerp(headerColor, Color.white, 0.1f);
-
                 if (SolidColorTexture != null)
                 {
                     Color bgColor = new Color(headerColor.r, headerColor.g, headerColor.b, 0.1f);

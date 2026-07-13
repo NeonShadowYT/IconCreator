@@ -5,10 +5,12 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
 {
     public static class ShadowSettingsDrawer
     {
-        public static void Draw(ref bool showShadowSettings, ShadowSettings shadowSettings, EditorStyleManager styleManager)
+        public static void Draw(ref bool showShadowSettings, ShadowSettings shadowSettings, EditorStyleManager styleManager, Color headerColor)
         {
             EditorGUILayout.BeginVertical("box");
-            showShadowSettings = EditorGUILayout.Foldout(showShadowSettings, "👥 Тень", 
+            string colorHex = ColorUtility.ToHtmlStringRGB(headerColor);
+            string label = $"👥 <color=#{colorHex}>Тень</color>";
+            showShadowSettings = EditorGUILayout.Foldout(showShadowSettings, label, 
                 styleManager?.FoldoutStyle ?? EditorStyles.foldout);
             
             if (showShadowSettings)

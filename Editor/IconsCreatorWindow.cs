@@ -12,15 +12,15 @@ namespace NeonImperium.IconsCreation
         [SerializeField] private string directory = "Assets/Icons/";
         [SerializeField] private string scenePath = "Assets/Plugins/NeonImperium/IconCreator/Scenes/Icons_Creation.unity";
         [SerializeField] private string presetsFolder = "Assets/Plugins/NeonImperium/IconCreator/Presets";
-        [SerializeField] private TextureSettings textureSettings = new();
-        [SerializeField] private CameraSettings cameraSettings = new();
-        [SerializeField] private LightSettings lightSettings = new();
-        [SerializeField] private ShadowSettings shadowSettings = new();
-        [SerializeField] private List<Object> targets = new();
+        [SerializeField] private TextureSettings textureSettings = new TextureSettings();
+        [SerializeField] private CameraSettings cameraSettings = new CameraSettings();
+        [SerializeField] private LightSettings lightSettings = new LightSettings();
+        [SerializeField] private ShadowSettings shadowSettings = new ShadowSettings();
+        [SerializeField] private List<Object> targets = new List<Object>();
         [SerializeField] private string cameraTag = "EditorOnly";
         [SerializeField] private string objectsLayer = "TransparentFX";
 
-        private readonly IconCreatorService _iconCreator = new();
+        private readonly IconCreatorService _iconCreator = new IconCreatorService();
         private PresetManager _presetManager;
         private Vector2 _scrollPosition;
         private Vector2 _previewScrollPosition;
@@ -34,7 +34,6 @@ namespace NeonImperium.IconsCreation
         private bool _showPresetSettings = false;
 
         private bool HasValidTargets => targets.ExtractAllGameObjects().Any(g => g.HasVisibleMesh());
-        private int TargetCount => targets.ExtractAllGameObjects().Count(g => g.HasVisibleMesh());
         private IconsCreatorData _data;
         private bool _previewNeedsUpdate = false;
         private bool _presetApplied = false;
@@ -42,11 +41,8 @@ namespace NeonImperium.IconsCreation
         private PresetData _currentSettingsState;
         private bool _settingsChangedSinceLastPreview = false;
         private bool _firstPreviewUpdate = true;
-        private List<Object> _previousTargets = new();
+        private List<Object> _previousTargets = new List<Object>();
         private bool _targetsChanged = false;
-
-        // Флаг, что путь к сцене некорректен
-        private bool _scenePathValid = true;
 
         [MenuItem("Neon Imperium/Создатель иконок")]
         private static void OpenWindow()
@@ -58,7 +54,9 @@ namespace NeonImperium.IconsCreation
         private void OnEnable()
         {
             _styleManager = new EditorStyleManager();
+            #pragma warning disable UDR0004 // Domain Reload Analyzer
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            #pragma warning restore UDR0004 // Domain Reload Analyzer
 
             if (!EditorApplication.isPlaying && !BuildPipeline.isBuildingPlayer)
             {
@@ -102,13 +100,18 @@ namespace NeonImperium.IconsCreation
 
         private void InitializeServices()
         {
+            SettingsStorage.LoadAll(ref directory, ref scenePath, ref presetsFolder,
+                ref textureSettings, ref cameraSettings, ref lightSettings, ref shadowSettings,
+                ref cameraTag, ref objectsLayer);
+
             _iconCreator.InitializeEnvironment(scenePath);
-            LoadSettings();
 
             _presetManager = new PresetManager(presetsFolder);
             LoadCurrentPreset();
 
+            #pragma warning disable UDR0004 // Domain Reload Analyzer
             EditorApplication.update += OnEditorUpdate;
+            #pragma warning restore UDR0004 // Domain Reload Analyzer
             CreateCurrentSettingsState();
             _previousTargets = new List<Object>(targets);
             _previewNeedsUpdate = true;
@@ -117,7 +120,10 @@ namespace NeonImperium.IconsCreation
 
         private void CleanupResources()
         {
-            SaveSettings();
+            SettingsStorage.SaveAll(directory, scenePath, presetsFolder,
+                textureSettings, cameraSettings, lightSettings, shadowSettings,
+                cameraTag, objectsLayer);
+
             _iconCreator.Dispose();
             _styleManager?.Dispose();
             _styleManager = null;
@@ -168,40 +174,6 @@ namespace NeonImperium.IconsCreation
             return false;
         }
 
-        private void LoadSettings()
-        {
-            directory = EditorPrefs.GetString(nameof(directory), "Assets/Icons/");
-            scenePath = EditorPrefs.GetString("scenePath", "Assets/Plugins/NeonImperium/IconCreator/Scenes/Icons_Creation.unity");
-            presetsFolder = EditorPrefs.GetString("presetsFolder", "Assets/Plugins/NeonImperium/IconCreator/Presets");
-            textureSettings.Size = EditorPrefs.GetInt("textureSize", 512);
-            cameraSettings.Padding = EditorPrefs.GetFloat("padding", 0.1f);
-            textureSettings.Compression = (TextureImporterCompression)EditorPrefs.GetInt("compression", (int)TextureImporterCompression.CompressedHQ);
-            textureSettings.FilterMode = (FilterMode)EditorPrefs.GetInt("filterMode", (int)FilterMode.Point);
-            textureSettings.AnisoLevel = EditorPrefs.GetInt("anisoLevel", 0);
-
-            cameraSettings.Rotation = LoadVector3("cameraRotation", new Vector3(45f, -45f, 0f));
-
-            lightSettings.Type = (LightType)EditorPrefs.GetInt("lightType", (int)LightType.Directional);
-            lightSettings.DirectionalRotation = LoadVector3("directionalRotation", new Vector3(50f, -30f, 0f));
-            lightSettings.DirectionalColor = LoadColor("directionalColor", Color.white);
-            lightSettings.DirectionalIntensity = EditorPrefs.GetFloat("directionalIntensity", 1f);
-
-            for (int i = 0; i < lightSettings.PointLights.Length; i++)
-            {
-                lightSettings.PointLights[i].Position = LoadVector3($"pointLight{i}Position", new Vector3(1, 0.5f, -0.5f));
-                lightSettings.PointLights[i].Color = LoadColor($"pointLight{i}Color", Color.white);
-                lightSettings.PointLights[i].Intensity = EditorPrefs.GetFloat($"pointLight{i}Intensity", 1f);
-            }
-
-            shadowSettings.Enabled = EditorPrefs.GetBool("shadowEnabled", false);
-            shadowSettings.Color = LoadColor("shadowColor", new Color(0f, 0f, 0f, 0.5f));
-            shadowSettings.Offset = LoadVector2("shadowOffset", new Vector2(0.05f, -0.05f));
-            shadowSettings.Scale = EditorPrefs.GetFloat("shadowScale", 0.95f);
-
-            cameraTag = EditorPrefs.GetString("cameraTag", "EditorOnly");
-            objectsLayer = EditorPrefs.GetString("objectsLayer", "TransparentFX");
-        }
-
         private void LoadCurrentPreset()
         {
             string currentPresetName = _presetManager.GetCurrentPresetName();
@@ -213,88 +185,6 @@ namespace NeonImperium.IconsCreation
                     ApplyPreset(preset);
                 }
             }
-        }
-
-        private void SaveSettings()
-        {
-            EditorPrefs.SetString(nameof(directory), directory);
-            EditorPrefs.SetString("scenePath", scenePath);
-            EditorPrefs.SetString("presetsFolder", presetsFolder);
-            EditorPrefs.SetInt("textureSize", textureSettings.Size);
-            EditorPrefs.SetFloat("padding", cameraSettings.Padding);
-            EditorPrefs.SetInt("compression", (int)textureSettings.Compression);
-            EditorPrefs.SetInt("filterMode", (int)textureSettings.FilterMode);
-            EditorPrefs.SetInt("anisoLevel", textureSettings.AnisoLevel);
-
-            SaveVector3("cameraRotation", cameraSettings.Rotation);
-
-            EditorPrefs.SetInt("lightType", (int)lightSettings.Type);
-            SaveVector3("directionalRotation", lightSettings.DirectionalRotation);
-            SaveColor("directionalColor", lightSettings.DirectionalColor);
-            EditorPrefs.SetFloat("directionalIntensity", lightSettings.DirectionalIntensity);
-
-            for (int i = 0; i < lightSettings.PointLights.Length; i++)
-            {
-                SaveVector3($"pointLight{i}Position", lightSettings.PointLights[i].Position);
-                SaveColor($"pointLight{i}Color", lightSettings.PointLights[i].Color);
-                EditorPrefs.SetFloat($"pointLight{i}Intensity", lightSettings.PointLights[i].Intensity);
-            }
-
-            EditorPrefs.SetBool("shadowEnabled", shadowSettings.Enabled);
-            SaveColor("shadowColor", shadowSettings.Color);
-            SaveVector2("shadowOffset", shadowSettings.Offset);
-            EditorPrefs.SetFloat("shadowScale", shadowSettings.Scale);
-
-            EditorPrefs.SetString("cameraTag", cameraTag);
-            EditorPrefs.SetString("objectsLayer", objectsLayer);
-        }
-
-        private Color LoadColor(string key, Color defaultValue)
-        {
-            return new Color(
-                EditorPrefs.GetFloat($"{key}_r", defaultValue.r),
-                EditorPrefs.GetFloat($"{key}_g", defaultValue.g),
-                EditorPrefs.GetFloat($"{key}_b", defaultValue.b),
-                EditorPrefs.GetFloat($"{key}_a", defaultValue.a)
-            );
-        }
-
-        private void SaveColor(string key, Color color)
-        {
-            EditorPrefs.SetFloat($"{key}_r", color.r);
-            EditorPrefs.SetFloat($"{key}_g", color.g);
-            EditorPrefs.SetFloat($"{key}_b", color.b);
-            EditorPrefs.SetFloat($"{key}_a", color.a);
-        }
-
-        private Vector2 LoadVector2(string key, Vector2 defaultValue)
-        {
-            return new Vector2(
-                EditorPrefs.GetFloat($"{key}_x", defaultValue.x),
-                EditorPrefs.GetFloat($"{key}_y", defaultValue.y)
-            );
-        }
-
-        private void SaveVector2(string key, Vector2 vector)
-        {
-            EditorPrefs.SetFloat($"{key}_x", vector.x);
-            EditorPrefs.SetFloat($"{key}_y", vector.y);
-        }
-
-        private Vector3 LoadVector3(string key, Vector3 defaultValue)
-        {
-            return new Vector3(
-                EditorPrefs.GetFloat($"{key}_x", defaultValue.x),
-                EditorPrefs.GetFloat($"{key}_y", defaultValue.y),
-                EditorPrefs.GetFloat($"{key}_z", defaultValue.z)
-            );
-        }
-
-        private void SaveVector3(string key, Vector3 vector)
-        {
-            EditorPrefs.SetFloat($"{key}_x", vector.x);
-            EditorPrefs.SetFloat($"{key}_y", vector.y);
-            EditorPrefs.SetFloat($"{key}_z", vector.z);
         }
 
         private void OnGUI()
@@ -312,24 +202,25 @@ namespace NeonImperium.IconsCreation
                 _presetManager = new PresetManager(presetsFolder);
 
             _styleManager.InitializeStyles();
-            _styleManager.UpdateStyles(new Color(0.2f, 0.6f, 1f));
+            Color headerColor = new Color(0.2f, 0.6f, 1f);
+            _styleManager.UpdateStyles(headerColor);
 
             using (GUILayout.ScrollViewScope scroll = new GUILayout.ScrollViewScope(_scrollPosition))
             {
                 _scrollPosition = scroll.scrollPosition;
 
-                DrawHeader();
+                DrawHeader(headerColor);
 
                 PresetDrawer.Draw(ref _showPresetSettings, _presetManager, ref presetsFolder, textureSettings, cameraSettings,
-                    lightSettings, shadowSettings, targets, scenePath, _styleManager);
+                    lightSettings, shadowSettings, targets, scenePath, _styleManager, headerColor);
 
                 SpawnSettingsDrawer.Draw(ref _showSpawnSettings, ref directory, ref cameraTag, ref objectsLayer,
-                    ref scenePath, textureSettings, cameraSettings, _styleManager);
+                    ref scenePath, textureSettings, cameraSettings, _styleManager, headerColor);
 
-                LightSettingsDrawer.Draw(ref _showLightSettings, lightSettings, _styleManager);
-                ShadowSettingsDrawer.Draw(ref _showShadowSettings, shadowSettings, _styleManager);
-                SpriteSettingsDrawer.Draw(ref _showSpriteSettings, textureSettings, _styleManager);
-                ObjectsSettingsDrawer.Draw(ref _showObjectsSettings, targets, _styleManager, new SerializedObject(this));
+                LightSettingsDrawer.Draw(ref _showLightSettings, lightSettings, _styleManager, headerColor);
+                ShadowSettingsDrawer.Draw(ref _showShadowSettings, shadowSettings, _styleManager, headerColor);
+                SpriteSettingsDrawer.Draw(ref _showSpriteSettings, textureSettings, _styleManager, headerColor);
+                ObjectsSettingsDrawer.Draw(ref _showObjectsSettings, targets, _styleManager, new SerializedObject(this), headerColor);
 
                 if (HasValidTargets)
                 {
@@ -483,10 +374,12 @@ namespace NeonImperium.IconsCreation
             EditorGUILayout.EndVertical();
         }
 
-        private void DrawHeader()
+        private void DrawHeader(Color headerColor)
         {
             EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.LabelField("🖼️ Создатель иконок", _styleManager?.HeaderStyle ?? EditorStyles.boldLabel);
+            string colorHex = ColorUtility.ToHtmlStringRGB(headerColor);
+            string headerText = $"🖼️ <color=#{colorHex}>Создатель иконок</color>";
+            EditorGUILayout.LabelField(headerText, _styleManager?.HeaderStyle ?? EditorStyles.boldLabel);
             EditorGUILayout.EndVertical();
             EditorGUILayout.Space(10f);
         }

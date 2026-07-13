@@ -10,15 +10,17 @@ namespace NeonImperium.IconsCreation
         private static Vector2 _presetScrollPosition;
         private static string _newPresetName = "Новый пресет";
         #pragma warning restore UDR0001 // Domain Reload Analyzer
-        private static readonly Dictionary<string, Texture2D> _previewCache = new();
+        private static readonly Dictionary<string, Texture2D> _previewCache = new Dictionary<string, Texture2D>();
 
         public static void Draw(ref bool showPresetSettings, PresetManager presetManager, 
             ref string presetsFolder, TextureSettings textureSettings, CameraSettings cameraSettings, 
             LightSettings lightSettings, ShadowSettings shadowSettings,
-            List<Object> targets, string scenePath, EditorStyleManager styleManager)
+            List<Object> targets, string scenePath, EditorStyleManager styleManager, Color headerColor)
         {
             EditorGUILayout.BeginVertical("box");
-            showPresetSettings = EditorGUILayout.Foldout(showPresetSettings, "💾 Пресеты", 
+            string colorHex = ColorUtility.ToHtmlStringRGB(headerColor);
+            string label = $"💾 <color=#{colorHex}>Пресеты</color>";
+            showPresetSettings = EditorGUILayout.Foldout(showPresetSettings, label, 
                 styleManager?.FoldoutStyle ?? EditorStyles.foldout);
             
             if (showPresetSettings)
@@ -113,6 +115,7 @@ namespace NeonImperium.IconsCreation
 
             foreach (PresetData preset in presets)
             {
+                if (preset == null) continue;
                 if (!_previewCache.ContainsKey(preset.presetName))
                 {
                     _previewCache[preset.presetName] = presetManager.GeneratePreviewForPreset(preset, targets, scenePath);
@@ -124,6 +127,7 @@ namespace NeonImperium.IconsCreation
 
             foreach (PresetData preset in presets)
             {
+                if (preset == null) continue;
                 DrawPresetItem(preset, presetManager);
             }
 
@@ -132,6 +136,14 @@ namespace NeonImperium.IconsCreation
 
         private static void DrawPresetItem(PresetData preset, PresetManager presetManager)
         {
+            if (preset == null) return;
+            if (preset.textureSettings == null || preset.cameraSettings == null || 
+                preset.lightSettings == null || preset.shadowSettings == null)
+            {
+                EditorGUILayout.HelpBox($"Пресет '{preset.presetName}' повреждён и не может быть отображён", MessageType.Error);
+                return;
+            }
+
             EditorGUILayout.BeginVertical("box");
             
             EditorGUILayout.BeginHorizontal();
@@ -166,7 +178,7 @@ namespace NeonImperium.IconsCreation
             
             EditorGUILayout.BeginVertical(GUILayout.Width(120));
             
-            GUIStyle buttonStyle = new(GUI.skin.button)
+            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button)
             {
                 fixedHeight = 25,
                 fontSize = 11,
@@ -199,6 +211,7 @@ namespace NeonImperium.IconsCreation
 
         private static void ApplyPreset(PresetData preset)
         {
+            if (preset == null) return;
             IconsCreatorWindow[] windows = Resources.FindObjectsOfTypeAll<IconsCreatorWindow>();
             foreach (IconsCreatorWindow window in windows)
             {
@@ -248,7 +261,7 @@ namespace NeonImperium.IconsCreation
 
         private static LightSettings CloneLightSettings(LightSettings original)
         {
-            LightSettings clone = new()
+            LightSettings clone = new LightSettings
             {
                 Type = original.Type,
                 DirectionalRotation = original.DirectionalRotation,

@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -16,6 +15,7 @@ namespace NeonImperium.IconsCreation
         private EditorCoroutine _previewCoroutine;
         private bool _previewDirty = true;
         private string _scenePath;
+        private bool _isProcessing = false;
 
         public Texture2D[] CameraPreviews { get; private set; }
         public bool IsGenerating { get; private set; }
@@ -80,6 +80,7 @@ namespace NeonImperium.IconsCreation
 
         public void RequestPreviewUpdate(bool forceUpdate = false)
         {
+            if (_isProcessing) return;
             if (!HasValidTargets || IsGenerating) return;
             
             if (_previewDirty || forceUpdate)
@@ -89,8 +90,10 @@ namespace NeonImperium.IconsCreation
                 if (_previewCoroutine != null)
                 {
                     EditorCoroutine.Stop(_previewCoroutine);
+                    _previewCoroutine = null;
                 }
                 
+                _isProcessing = true;
                 _previewCoroutine = EditorCoroutine.Start(UpdatePreviewCoroutine());
             }
         }
@@ -102,7 +105,10 @@ namespace NeonImperium.IconsCreation
             ClearPreviews();
             
             if (_data == null || _data.Targets == null)
+            {
+                _isProcessing = false;
                 yield break;
+            }
                 
             GameObject[] validTargets = _data.Targets.Where(t => t != null).ToArray();
             CameraPreviews = new Texture2D[validTargets.Length];
@@ -132,13 +138,17 @@ namespace NeonImperium.IconsCreation
                 if (i % 2 == 0)
                     yield return null;
             }
+
+            _isProcessing = false;
         }
 
         public void CreateIconsAsync()
         {
+            if (_isProcessing) return;
             if (!HasValidTargets || IsGenerating) return;
             
             StopGeneration();
+            _isProcessing = true;
             _generationCoroutine = EditorCoroutine.Start(CreateIconsCoroutine());
         }
 
@@ -154,6 +164,7 @@ namespace NeonImperium.IconsCreation
             if (totalTargets == 0)
             {
                 StopGeneration();
+                _isProcessing = false;
                 yield break;
             }
             
@@ -196,6 +207,7 @@ namespace NeonImperium.IconsCreation
             EditorUtility.DisplayDialog("Готово", $"Создано {totalTargets} иконок", "OK");
             
             StopGeneration();
+            _isProcessing = false;
         }
 
         public void StopGeneration()
@@ -215,6 +227,7 @@ namespace NeonImperium.IconsCreation
             IsGenerating = false;
             GenerationProgress = 0f;
             GenerationStatus = "";
+            _isProcessing = false;
         }
 
         public void Dispose()
@@ -269,9 +282,9 @@ namespace NeonImperium.IconsCreation
         
         private void Start()
         {
-            #pragma warning disable UDR0005 // Domain Reload Analyzer
+            #pragma warning disable UDR0004 // Domain Reload Analyzer
             EditorApplication.update += Update;
-            #pragma warning restore UDR0005 // Domain Reload Analyzer
+            #pragma warning restore UDR0004 // Domain Reload Analyzer
         }
         
         private void Update()
