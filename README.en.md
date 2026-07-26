@@ -235,4 +235,6 @@ If this tool saved you time - drop a star on GitHub. It helps other devs find us
    
 **Made with ❤️ for devs who don't want to wrestle with icons manually**
 
+<img src="https://img.itch.zone/aW1nLzI2MTc1MTAzLmdpZg==/original/ZSdakp.gif" width="100%" alt="Starve Neon Banner">
+
 </div>
