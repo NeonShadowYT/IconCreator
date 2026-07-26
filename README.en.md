@@ -221,19 +221,15 @@ If this tool saved you time - drop a star on GitHub. It helps other devs find us
 | [![Neon Imperium](https://img.shields.io/badge/Neon%20Imperium-2d2f48?style=for-the-badge&logo=github&logoColor=white)](https://github.com/NeonShadowYT/NeonImperium) | Open-source website for Starve Neon - HTML/CSS/JS, feel free to peek and reuse. |
 
 <div align="center">
-   
-### 📸 Join the Community
 
-<img src="https://img.itch.zone/aW1nLzI2MTc1MTAzLmdpZg==/original/ZSdakp.gif" width="100%" alt="Starve Neon Banner">
+[![Starve Neon](https://raw.githubusercontent.com/NeonShadowYT/NeonShadowYT/main/images/banner-development.gif)](https://neonshadowyt.github.io/NeonImperium/starve-neon)
+
+### 📸 Join the Community
   
 [![YouTube](https://img.shields.io/youtube/channel/subscribers/UC2pH2qNfh2sEAeYEGs1k_Lg?style=for-the-badge&logo=youtube&logoColor=white&label=YouTube&labelColor=FF0000&color=282c34)](https://www.youtube.com/@NeonShadow-neon)
 [![Twitch](https://img.shields.io/twitch/status/neoncyndows?style=for-the-badge&logo=twitch&logoColor=white&label=Twitch&labelColor=9146FF&color=282c34)](https://www.twitch.tv/neoncyndows)
 [![Discord](https://img.shields.io/discord/1033727594467704842?style=for-the-badge&logo=discord&logoColor=white&label=Discord&labelColor=5865F2&color=282c34)](https://discord.com/invite/9gv5sRhk9R)
 [![Telegram](https://telegram-badge.vercel.app/api/telegram-badge?channelId=@voididea&style=for-the-badge&logo=telegram&logoColor=white&label=Telegram&labelColor=26A5E4&color=282c34)](https://t.me/voididea)
-  
-</div>
-
-<div align="center">
    
 **Made with ❤️ for devs who don't want to wrestle with icons manually**
 
