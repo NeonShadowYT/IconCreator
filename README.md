@@ -1,281 +1,238 @@
-# 🖼️ Icons Creator for Unity
+<div align="center">
+  <a href="README.md"><img src="https://img.shields.io/badge/🇷🇺%20Русский-2d2f48?style=for-the-badge&logoColor=white" alt="Русский"></a>
+  <a href="README.en.md"><img src="https://img.shields.io/badge/🇬🇧%20English-2d2f48?style=for-the-badge&logoColor=white" alt="English"></a>
+</div>
 
-<a href="https://github.com/NeonShadowYT/IconCreator/stargazers"><img src="https://img.shields.io/github/stars/NeonShadowYT/IconCreator?style=flat-square&logo=github&color=FFC107" alt="GitHub Stars"></a>
-<a href="https://github.com/NeonShadowYT?tab=followers"><img src="https://img.shields.io/github/followers/NeonShadowYT?style=flat-square&logo=github&label=Followers&color=282c34" alt="GitHub Followers"></a>
-<a href="https://github.com/NeonShadowYT/IconCreator/commits/main"><img src="https://img.shields.io/github/last-commit/NeonShadowYT/IconCreator?style=flat-square&logo=github&color=blueviolet" alt="Last Commit"></a>
-<a href="https://github.com/NeonShadowYT/IconCreator/releases"><img src="https://img.shields.io/github/v/release/NeonShadowYT/IconCreator?style=flat-square" alt="Release"></a>
-<a href="https://unity.com/"><img src="https://img.shields.io/badge/Unity-2022.3+-2296F3.svg?style=flat-square&logo=unity" alt="Unity Version"></a>
-<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License: MIT"></a>
+## 🖼️ Icons Creator for Unity
 
-**Профессиональный инструмент для создания высококачественных иконок из 3D моделей в редакторе Unity**  
-*Автоматизируйте процесс создания иконок с продвинутыми настройками освещения, теней и камеры*
+<div align="center">
+   
+[![GitHub stars](https://img.shields.io/github/stars/NeonShadowYT/IconCreator?style=for-the-badge&logo=github&color=FFC107)](https://github.com/NeonShadowYT/IconCreator/stargazers)
+[![GitHub followers](https://img.shields.io/github/followers/NeonShadowYT?style=for-the-badge&logo=github&label=Follow&color=282c34)](https://github.com/NeonShadowYT)
+[![GitHub last commit](https://img.shields.io/github/last-commit/NeonShadowYT/IconCreator?style=for-the-badge&logo=github&color=blueviolet)](https://github.com/NeonShadowYT/IconCreator/commits/main)
+[![GitHub release](https://img.shields.io/github/v/release/NeonShadowYT/IconCreator?style=for-the-badge)](https://github.com/NeonShadowYT/IconCreator/releases)
+[![Unity](https://img.shields.io/badge/Unity-2022.3+-2296F3.svg?style=for-the-badge&logo=unity)](https://unity.com/)
+[![License MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-<img width="1919" height="902" alt="Icons Creator Interface" src="https://github.com/user-attachments/assets/111f7a3c-13e0-4d87-bdcb-616e07fb5bba" />
+</div>
 
-## ✨ Основные возможности
+**Профессиональный создатель иконок для Unity**  
+*Делай иконки из 3D-моделей без лишней головной боли*
 
-### 🎯 Интеллектуальное создание иконок
-- **Автоматическое позиционирование камеры** для оптимального обзора
-- **Пакетная обработка** множества объектов за один клик
-- **Поддержка префабов и сценовых объектов**
-- **Автоматическое определение границ мешей**
+<div align="center">
+   
+   <img alt="Icons Creator Interface" src="https://github.com/user-attachments/assets/111f7a3c-13e0-4d87-bdcb-616e07fb5bba" />
+   
+</div>
 
-### 💡 Продвинутая система освещения
-- **Настраиваемые типы света** (направленный, точечный)
-- **Реалистичные тени** с контролем интенсивности и цвета
-- **Множественные источники света** для сложных сцен
-- **Автоматическая настройка рендеринга теней**
+## ✨ Что умеет?
 
-### 📸 Гибкие настройки камеры
-- **Ортогональная проекция** для единообразных иконок
-- **Настраиваемый угол обзора** (45° по умолчанию)
-- **Контроль отступа** для оптимального кадрирования
-- **Автоматический расчет размера** под объект
+<div align="center">
+   
+| Фича | Что даёт |
+|------|----------|
+| 📸 **Умная камера** | Сама настраивается под каждый объект - иконки всегда в кадре. |
+| 💡 **Продвинутый свет** | Направленный или точечный (до 2 источников) с цветом и яркостью. |
+| 👥 **Искусственная тень** | Тень, которую ты контролируешь: цвет, смещение, масштаб. |
+| 🎨 **Текстуры на любой вкус** | Размер до 2048, сжатие, фильтры - всё как в импортере. |
+| 💾 **Пресеты** | Сохраняй настройки с превьюшками и применяй в один клик. |
+| 👁️ **Живой предпросмотр** | Меняешь настройки - сразу видишь результат. |
+| 📦 **Пакетная обработка** | Куча объектов за раз - и все иконки готовы. |
 
-### 🎨 Качественные текстуры
-- **Высокое разрешение** (до 4096x4096)
-- **Различные форматы сжатия** (CompressedHQ, Compressed, Uncompressed)
-- **Настраиваемые фильтры** (Point, Bilinear, Trilinear)
-- **Анизотропная фильтрация** для улучшения качества
-
-### 👁️ Предпросмотр в реальном времени
-- **Мгновенный предпросмотр** всех моделей
-- **Сетка превью** с названиями объектов
-- **Автоматическое обновление** при изменении настроек
-- **Прокручиваемая панель** для большого количества объектов
-
-### 💾 Система пресетов
-- **Сохранение и загрузка** настроек
-- **Миниатюры пресетов** для визуального выбора
-- **Быстрое применение** настроек в один клик
-- **Экспорт и импорт** конфигураций
+</div>
 
 ## 🚀 Установка
 
 <details>
-<summary><strong>1. Установка через .unitypackage (Рекомендуется)</strong></summary>
+<summary><strong>📦 Через .unitypackage (самый простой)</strong></summary>
 
-Это самый простой способ установки, который обеспечивает стабильную работу.
+1. Заходи в [Releases](https://github.com/NeonShadowYT/IconCreator/releases).
+2. Качаешь `.unitypackage` последней версии.
+3. В Unity: `Assets > Import Package > Custom Package...` → выбираешь файл → `Import`.
 
-1. Перейдите на страницу [Releases](https://github.com/NeonShadowYT/IconCreator/releases)
-2. Скачайте файл `.unitypackage` из последнего релиза
-3. В вашем Unity проекте перейдите в **`Assets > Import Package > Custom Package...`**
-4. Выберите скачанный файл и нажмите **"Import"**
-
-> [!TIP]
-> Этот метод идеален для пользователей, которым нужна стабильная версия без постоянных обновлений.
+> Отличный вариант, если хочешь стабильную версию и не париться с гитом.
 
 </details>
 
 <details>
-<summary><strong>2. Установка через Git URL</strong></summary>
+<summary><strong>🔗 Через Git URL (для обновлений)</strong></summary>
 
-Этот метод устанавливает пакет напрямую из репозитория GitHub и позволяет легко обновляться до последней версии.
+1. В Unity открываешь **Package Manager** (`Window > Package Manager`).
+2. Нажимаешь `+` → **"Add package from git URL..."**.
+3. Вставляешь: `https://github.com/NeonShadowYT/IconCreator.git`
+4. Жмёшь **"Add"**.
 
-1. В Unity откройте **Package Manager** (`Window > Package Manager`)
-2. Нажмите кнопку **+** в верхнем левом углу и выберите **"Add package from git URL..."**
-3. Введите следующий URL и нажмите **"Add"**:
-   ```
-   https://github.com/NeonShadowYT/IconCreator.git
-   ```
-
-> [!NOTE]
-> При использовании этого метода убедитесь, что у вас есть подключение к интернету для загрузки пакета.
+> Так всегда будешь на самой свежей версии.
 
 </details>
 
 <details>
-<summary><strong>3. Ручная установка (из .zip)</strong></summary>
+<summary><strong>📁 Ручная установка (из ZIP)</strong></summary>
 
-Этот метод подходит для пользователей, которые хотят иметь полный контроль над файлами проекта.
+1. Качаешь репозиторий как ZIP (`Code > Download ZIP`).
+2. Разархивируешь.
+3. Папку `Assets` из архива перетаскиваешь в свой проект.
+4. Перезапускаешь Unity.
 
-1. Скачайте репозиторий как ZIP файл, нажав **`Code > Download ZIP`** на главной странице репозитория
-2. Разархивируйте скачанный файл
-3. Перетащите папку `Assets` из архива в папку `Assets` вашего Unity проекта
-4. Перезапустите Unity Editor
-
-> [!WARNING]
-> При использовании этого метода убедитесь, что вы не перезаписываете существующие файлы с такими же именами.
+> Смотри, чтобы не перезаписать свои файлы с такими же именами.
 
 </details>
 
-## 📖 Использование
+## 📖 Как пользоваться?
 
-После установки инструмент доступен через меню **`Neon Imperium > Создатель иконок`**.
+Открываешь инструмент через **`Neon Imperium > Создатель иконок`** вверху Unity.
 
-### Основной интерфейс
+<div align="center">
+   
+<img width="400" height="600" alt="Icons Creator Interface" src="https://private-user-images.githubusercontent.com/97021451/533302106-84c6a964-5f93-4278-adde-22c257e8e7b3.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3ODUwNTAyODMsIm5iZiI6MTc4NTA0OTk4MywicGF0aCI6Ii85NzAyMTQ1MS81MzMzMDIxMDYtODRjNmE5NjQtNWY5My00Mjc4LWFkZGUtMjJjMjU3ZThlN2IzLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNjA3MjYlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjYwNzI2VDA3MTMwM1omWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTcwMzg1NjJmYmE1NWY3ZDZmZmI5MDUxNjBhMGMxZTRiNTkwOTM3ZDRkZWFiYjM1ODhiNzMxOTczYTQxNzljZTEmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JnJlc3BvbnNlLWNvbnRlbnQtdHlwZT1pbWFnZSUyRnBuZyJ9.PFnY5k7TN5XuMseRwgxXwR11WcFj3eQjarceJgHQXGE"/>
+   
+</div>
 
-<img width="1210" height="735" alt="Основной интерфейс" src="https://github.com/user-attachments/assets/111f7a3c-13e0-4d87-bdcb-616e07fb5bba" />
-
-Интерфейс разделен на несколько раскрывающихся секций:
-
-### 🎯 Объекты для иконок
-- **Добавление объектов**: Перетащите префабы, сценовые объекты или папки с префабами в список
-- **Проверка мешей**: Инструмент автоматически проверяет наличие видимых мешей
-- **Пакетная обработка**: Поддержка создания иконок для множества объектов одновременно
+### 🎯 Объекты
+- Перетаскивай префабы, сценовые объекты или папки с префабами в список.
+- Инструмент сам проверит, есть ли у них видимые меши.
+- Если объект не подходит - он проигнорируется.
 
 ### ⚙️ Настройки иконки
-- **Папка сохранения**: Укажите путь для сохранения созданных иконок
-- **Размер иконки**: Выберите размер от 32px до 2048px
-- **Внутренний отступ**: Регулируйте отступ от краев объекта
-- **Поворот камеры**: Настройте угол обзора камеры
-- **Отображение теней**: Включите/выключите отображение теней на иконке
+- **Папка сохранения** - куда складывать готовые иконки.
+- **Размер** - от 32 до 2048 пикселей.
+- **Отступ** - сколько места оставлять от краёв объекта до рамки.
+- **Поворот камеры** - крути, как хочешь.
+- **Тени на сцене** - включить/выключить рендеринг теней.
 
-### 💡 Настройки освещения
-<details>
-<summary><strong>Направленный свет</strong></summary>
+### 💡 Освещение
 
-- **Поворот света**: Настройте направление освещения
-- **Цвет света**: Выберите цвет освещения
-- **Интенсивность**: Регулируйте яркость от 0 до 2
+<div align="center">
+   
+<img alt="Icons Creator Interface" src="https://private-user-images.githubusercontent.com/97021451/516618276-52d25a26-404c-4935-a01e-57e837808b7b.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3ODUwNTAyODMsIm5iZiI6MTc4NTA0OTk4MywicGF0aCI6Ii85NzAyMTQ1MS81MTY2MTgyNzYtNTJkMjVhMjYtNDA0Yy00OTM1LWEwMWUtNTdlODM3ODA4YjdiLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNjA3MjYlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjYwNzI2VDA3MTMwM1omWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPThlODQ2Yzg3NWVlODc4YTllMDc0YzI5NDFiMWFjNDEyZGFhMjdlMDJkNzBkMjcxY2NjZTIwMDllN2ZmM2E5MmYmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JnJlc3BvbnNlLWNvbnRlbnQtdHlwZT1pbWFnZSUyRnBuZyJ9.uB1U3Rpka08UYOX-0PnDIkpPDaMjEVVZ51eN2ujfTQE"/>
+   
+</div>
 
-</details>
+#### Направленный свет
+- Поворот, цвет, интенсивность - всё под контролем.
 
-<details>
-<summary><strong>Точечный свет</strong></summary>
+#### Точечный свет
+- До 2 источников.
+- Каждый со своей позицией, цветом и яркостью.
 
-- **Множественные источники**: До 2 независимых источников света
-- **Позиция**: Точное позиционирование в 3D пространстве
-- **Индивидуальные настройки**: Разный цвет и интенсивность для каждого источника
+### 👥 Искусственная тень
+- **Вкл/Выкл** - включай, когда нужно.
+- **Цвет** - и прозрачность (альфа канал).
+- **Смещение** - двигай тень по X и Y.
+- **Масштаб** - делай тень больше или меньше объекта.
 
-</details>
+### 🖌️ Текстура
+- **Сжатие** - `CompressedHQ`, `Compressed`, `Uncompressed`.
+- **Фильтр** - `Point`, `Bilinear`, `Trilinear`.
+- **Aniso Level** - от 0 до 16.
 
-### 👥 Настройки тени
-<details>
-<summary><strong>Основные параметры</strong></summary>
-
-- **Включение/выключение**: Активируйте тени при необходимости
-- **Цвет тени**: Настройте цвет и прозрачность
-- **Смещение**: Регулируйте положение тени относительно объекта
-- **Масштаб**: Изменяйте размер тени относительно иконки
-
-</details>
-
-### 🖌️ Настройки спрайта
-- **Сжатие текстуры**: Выберите качество сжатия (CompressedHQ, Compressed, Uncompressed)
-- **Filter Mode**: Настройте фильтрацию текстуры (Point, Bilinear, Trilinear)
-- **Aniso Level**: Установите уровень анизотропной фильтрации (0-16)
-
-### 🏷️ Настройки тегов и слоев
-<details>
-<summary><strong>Конфигурация тегов</strong></summary>
-
-- **Тег камеры**: Выберите или создайте тег для камеры рендеринга
-- **Слой объектов**: Укажите слой для рендеринга объектов
+### 🏷️ Теги и слои
+- **Тег камеры** - выбирай из существующих тегов.
+- **Слой объектов** - слой, на который будут помещены объекты при рендеринге.
 
 > [!IMPORTANT]
-> Рекомендуется использовать тег "EditorOnly" и слой "TransparentFX" для избежания конфликтов.
+> Рекомендую использовать `EditorOnly` для камеры и `TransparentFX` для объектов - меньше конфликтов.
 
-</details>
+## 💾 Система пресетов
 
-### 👁️ Предпросмотр
-- **Сетка предпросмотра**: Визуализация всех объектов в реальном времени
-- **Автоматическое обновление**: Предпросмотр обновляется при изменении настроек
-- **Прокрутка**: Поддержка большого количества объектов
+<div align="center">
+   
+<img alt="Icons Creator Interface" src="https://private-user-images.githubusercontent.com/97021451/516618268-077fd3d6-b38c-4f25-a9cd-3ba1d153413c.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3ODUwNTAyODMsIm5iZiI6MTc4NTA0OTk4MywicGF0aCI6Ii85NzAyMTQ1MS81MTY2MTgyNjgtMDc3ZmQzZDYtYjM4Yy00ZjI1LWE5Y2QtM2JhMWQxNTM0MTNjLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNjA3MjYlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjYwNzI2VDA3MTMwM1omWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTg2MzA1MDA0MDc1NDAyYjhkZmUyNTU5MDczZWQxMTVmMzE1OWNjYWU1ODU3YTc5YTgxY2IxNmYzYzc2ZjlhYjgmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JnJlc3BvbnNlLWNvbnRlbnQtdHlwZT1pbWFnZSUyRnBuZyJ9.XhSeJCwHFzuk2yV-454HhtDQwX-3qB2N6jxHhcLvNJk"/>
+   
+</div>
 
-### 💾 Управление пресетами
-<details>
-<summary><strong>Сохранение пресетов</strong></summary>
+Это отдельная тема. Ты можешь сохранить любой набор настроек как пресет, и потом применять его в один клик.
 
-1. Настройте все параметры как требуется
-2. Введите имя пресета
-3. Нажмите "Сохранить"
-4. Пресет будет доступен для быстрого применения
+1. Настраиваешь всё как надо.
+2. Вводишь имя пресета и жмёшь **«Сохранить»**.
+3. Пресет появляется в списке с миниатюрой.
+4. Чтобы применить - просто нажми **«Загрузить»** на нужном пресете.
+5. Ненужный пресет удаляешь кнопкой **«Удалить»**.
 
-</details>
+Всё хранится в папке `Presets` в JSON-файлах. Можешь даже шарить их между проектами.
 
-<details>
-<summary><strong>Загрузка пресетов</strong></summary>
+## 👁️ Предпросмотр в реальном времени
 
-1. Выберите пресет из списка
-2. Нажмите "Загрузить"
-3. Все настройки будут применены автоматически
-4. Предпросмотр обновится мгновенно
-
-</details>
+Как только добавил объекты и покрутил настройки - превью обновляется автоматически.  
+Если объектов много - превьюшка прокручивается, ничего не сломается.
 
 ## ⚡ Быстрый старт
 
-1. **Откройте инструмент**: `Neon Imperium > Создатель иконок`
-2. **Добавьте объекты**: Перетащите префабы в список объектов
-3. **Настройте параметры**:
-   - Выберите размер 512px
-   - Установите отступ 10%
-   - Настройте освещение под ваш проект
-4. **Просмотрите результат**: Проверьте предпросмотр
-5. **Создайте иконки**: Нажмите "Создать иконки"
+1. **Открываешь** `Neon Imperium > Создатель иконок`.
+2. **Кидаешь** префабы в список объектов.
+3. **Крутишь** настройки под свой вкус (размер 512, отступ 10% - хорошее начало).
+4. **Смотришь** предпросмотр.
+5. **Жмёшь** «Создать иконки».
 
-## 🛠️ Конфигурация
+Готово!
 
-### Пользовательские настройки
+## 🛠️ Советы по оптимизации
 
-Все настройки сохраняются автоматически между сессиями:
-- **Пути сохранения**: Запоминаются последние использованные папки
-- **Параметры рендеринга**: Сохраняются все настройки камеры и освещения
-- **Пресеты**: Доступны после перезапуска редактора
+- Для **UI иконок** - бери 128–256px, отключай тени.
+- Для **превью в магазинах** - 1024px, качественное сжатие.
+- Для **массовой генерации** - выключай тени и ставь `Compressed`.
+- Для **премиум-качества** - включай тени, ставь `CompressedHQ` и `Trilinear`.
 
-### Оптимизация производительности
+## 🐛 Проблемы и решения
 
 <details>
-<summary><strong>Рекомендации</strong></summary>
+<summary><strong>🖤 Иконки сохраняются с чёрным фоном</strong></summary>
 
-- **Для UI иконок**: Используйте размер 256px
-- **Для HD текстур**: Используйте 1024px или 2048px
-- **Для массового создания**: Отключите тени и используйте Compressed сжатие
-- **Для высокого качества**: Включите тени и используйте CompressedHQ
+**Почему:** Скорее всего, неправильно настроены слои или камера.
+
+**Как починить:** Проверь, что у камеры тег `EditorOnly`, а у объектов - слой `TransparentFX`. Если не помогает - проверь `RenderShadows` и настройки камеры в разделе «Настройки иконки».
 
 </details>
 
 <details>
-<summary><strong>Иконки сохраняются с черным фоном</strong></summary>
+<summary><strong>👻 Объект невидимый</strong></summary>
 
-**Возможные причины:**
-1. Неправильные настройки камеры
-2. Проблемы со слоями рендеринга
+**Почему:** Скорее всего, неправильно настроены слои или камера.
 
-**Решение:** Проверьте настройки камеры и убедитесь, что слой объектов правильно назначен.
+**Как починить:** Проверь, что у камеры тег `EditorOnly`, а у объектов - слой `TransparentFX`. Если не помогает - проверь свой URP Render Data раздел `Filtering` и настройки камеры в разделе «Настройки иконки».
 
 </details>
 
 <details>
-<summary><strong>Инструмент не работает в Play Mode</strong></summary>
+<summary><strong>⛔ Инструмент не работает в Play Mode</strong></summary>
 
-**Причина:** Инструмент специально отключен в Play Mode для предотвращения конфликтов со сценой.
+**Почему:** Так задумано, чтобы не было конфликтов со сценой во время игры.
 
-**Решение:** Выйдите из Play Mode для использования создателя иконок.
+**Как починить:** Просто выйди из Play Mode - и всё заработает.
 
 </details>
 
-## 🐛 Отчет об ошибках
+<div align="center">
+   
+## ⭐ Поддержи проект
 
-Если вы обнаружили ошибку, пожалуйста:
-1. Проверьте [существующие issues](https://github.com/NeonShadowYT/IconCreator/issues)
-2. Создайте новое issue с описанием проблемы
-3. Укажите:
-   - Версию Unity
-   - Версию инструмента
-   - Шаги для воспроизведения
-   - Скриншоты (если возможно)
+Если тебе пригодился этот инструмент - поставь звёздочку на GitHub. Это помогает другим разработчикам находить полезные проекты.
+  
+[![GitHub stars](https://img.shields.io/github/stars/NeonShadowYT/IconCreator?style=for-the-badge&logo=github&color=FFC107)](https://github.com/NeonShadowYT/IconCreator/stargazers)
+[![GitHub followers](https://img.shields.io/github/followers/NeonShadowYT?style=for-the-badge&logo=github&label=Follow&color=282c34)](https://github.com/NeonShadowYT)
+   
+</div>
 
-## 📄 Лицензия
+### 🔧 Другие мои инструменты
 
-Этот проект распространяется под лицензией MIT. Подробнее см. в файле [LICENSE](LICENSE).
+| Инструмент | Что делает |
+|------------|------------|
+| [![World Generator](https://img.shields.io/badge/World%20Generator-2d2f48?style=for-the-badge&logo=github&logoColor=white)](https://github.com/NeonShadowYT/WorldGenerator) | Расстановка префабов по правилам - идеально для процедурной генерации уровней. |
+| [![Neon Imperium](https://img.shields.io/badge/Neon%20Imperium-2d2f48?style=for-the-badge&logo=github&logoColor=white)](https://github.com/NeonShadowYT/NeonImperium) | Открытый сайт для Starve Neon - HTML/CSS/JS, можно изучать и использовать. |
 
-## 👏 Благодарности
+<div align="center">
+   
+### 📸 Присоединяйся к сообществу
+  
+[![YouTube](https://img.shields.io/youtube/channel/subscribers/UC2pH2qNfh2sEAeYEGs1k_Lg?style=for-the-badge&logo=youtube&logoColor=white&label=YouTube&labelColor=FF0000&color=282c34)](https://www.youtube.com/@NeonShadow-neon)
+[![Twitch](https://img.shields.io/twitch/status/neoncyndows?style=for-the-badge&logo=twitch&logoColor=white&label=Twitch&labelColor=9146FF&color=282c34)](https://www.twitch.tv/neoncyndows)
+[![Discord](https://img.shields.io/discord/1033727594467704842?style=for-the-badge&logo=discord&logoColor=white&label=Discord&labelColor=5865F2&color=282c34)](https://discord.com/invite/9gv5sRhk9R)
+[![Telegram](https://telegram-badge.vercel.app/api/telegram-badge?channelId=@voididea&style=for-the-badge&logo=telegram&logoColor=white&label=Telegram&labelColor=26A5E4&color=282c34)](https://t.me/voididea)
+  
+</div>
 
-- **Unity Technologies** за мощный редактор
-- **Сообщество Unity** за вдохновение и поддержку
-- **Всем пользователям** за отзывы и предложения
+<div align="center">
+   
+**Сделано с ❤️ для тех, кто не хочет мучиться с иконками вручную**
 
----
-
-**Создано с ❤️ для сообщества Unity разработчиков**
-
-> [!NOTE]
-> Если вам нравится этот инструмент, пожалуйста, поставьте звезду ⭐ на GitHub! Это помогает проекту развиваться.
-
-## 🔗 Ссылки
-
-- [Документация](https://github.com/NeonShadowYT/IconCreator/wiki)
-- [Issues](https://github.com/NeonShadowYT/IconCreator/issues)
-- [Releases](https://github.com/NeonShadowYT/IconCreator/releases)
+</div>
