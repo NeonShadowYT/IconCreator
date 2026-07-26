@@ -223,6 +223,8 @@ If this tool saved you time - drop a star on GitHub. It helps other devs find us
 <div align="center">
    
 ### 📸 Join the Community
+
+<img src="https://img.itch.zone/aW1nLzI2MTc1MTAzLmdpZg==/original/ZSdakp.gif" width="100%" alt="Starve Neon Banner">
   
 [![YouTube](https://img.shields.io/youtube/channel/subscribers/UC2pH2qNfh2sEAeYEGs1k_Lg?style=for-the-badge&logo=youtube&logoColor=white&label=YouTube&labelColor=FF0000&color=282c34)](https://www.youtube.com/@NeonShadow-neon)
 [![Twitch](https://img.shields.io/twitch/status/neoncyndows?style=for-the-badge&logo=twitch&logoColor=white&label=Twitch&labelColor=9146FF&color=282c34)](https://www.twitch.tv/neoncyndows)
@@ -234,7 +236,5 @@ If this tool saved you time - drop a star on GitHub. It helps other devs find us
 <div align="center">
    
 **Made with ❤️ for devs who don't want to wrestle with icons manually**
-
-<img src="https://img.itch.zone/aW1nLzI2MTc1MTAzLmdpZg==/original/ZSdakp.gif" width="100%" alt="Starve Neon Banner">
 
 </div>
