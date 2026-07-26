@@ -84,7 +84,7 @@ Open the tool via **`Neon Imperium > Создатель иконок`** at the t
 
 <div align="center">
    
-<img width="400" height="600" alt="Icons Creator Interface" src="https://private-user-images.githubusercontent.com/97021451/533302106-84c6a964-5f93-4278-adde-22c257e8e7b3.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3ODUwNTAyODMsIm5iZiI6MTc4NTA0OTk4MywicGF0aCI6Ii85NzAyMTQ1MS81MzMzMDIxMDYtODRjNmE5NjQtNWY5My00Mjc4LWFkZGUtMjJjMjU3ZThlN2IzLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNjA3MjYlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjYwNzI2VDA3MTMwM1omWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTcwMzg1NjJmYmE1NWY3ZDZmZmI5MDUxNjBhMGMxZTRiNTkwOTM3ZDRkZWFiYjM1ODhiNzMxOTczYTQxNzljZTEmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JnJlc3BvbnNlLWNvbnRlbnQtdHlwZT1pbWFnZSUyRnBuZyJ9.PFnY5k7TN5XuMseRwgxXwR11WcFj3eQjarceJgHQXGE"/>
+<img width="400" height="600" alt="Icons Creator Interface" src="https://github.com/user-attachments/assets/6be77723-5f0e-4aa3-83ed-a66d303676a7"/>
    
 </div>
 
@@ -104,7 +104,7 @@ Open the tool via **`Neon Imperium > Создатель иконок`** at the t
 
 <div align="center">
    
-<img alt="Icons Creator Interface" src="https://private-user-images.githubusercontent.com/97021451/516618276-52d25a26-404c-4935-a01e-57e837808b7b.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3ODUwNTAyODMsIm5iZiI6MTc4NTA0OTk4MywicGF0aCI6Ii85NzAyMTQ1MS81MTY2MTgyNzYtNTJkMjVhMjYtNDA0Yy00OTM1LWEwMWUtNTdlODM3ODA4YjdiLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNjA3MjYlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjYwNzI2VDA3MTMwM1omWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPThlODQ2Yzg3NWVlODc4YTllMDc0YzI5NDFiMWFjNDEyZGFhMjdlMDJkNzBkMjcxY2NjZTIwMDllN2ZmM2E5MmYmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JnJlc3BvbnNlLWNvbnRlbnQtdHlwZT1pbWFnZSUyRnBuZyJ9.uB1U3Rpka08UYOX-0PnDIkpPDaMjEVVZ51eN2ujfTQE"/>
+<img alt="Icons Creator Interface" src="https://github.com/user-attachments/assets/cfabac98-9335-4113-aa0e-2949c7f97be1"/>
    
 </div>
 
@@ -137,7 +137,7 @@ Open the tool via **`Neon Imperium > Создатель иконок`** at the t
 
 <div align="center">
    
-<img alt="Icons Creator Interface" src="https://private-user-images.githubusercontent.com/97021451/516618268-077fd3d6-b38c-4f25-a9cd-3ba1d153413c.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3ODUwNTAyODMsIm5iZiI6MTc4NTA0OTk4MywicGF0aCI6Ii85NzAyMTQ1MS81MTY2MTgyNjgtMDc3ZmQzZDYtYjM4Yy00ZjI1LWE5Y2QtM2JhMWQxNTM0MTNjLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNjA3MjYlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjYwNzI2VDA3MTMwM1omWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTg2MzA1MDA0MDc1NDAyYjhkZmUyNTU5MDczZWQxMTVmMzE1OWNjYWU1ODU3YTc5YTgxY2IxNmYzYzc2ZjlhYjgmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JnJlc3BvbnNlLWNvbnRlbnQtdHlwZT1pbWFnZSUyRnBuZyJ9.XhSeJCwHFzuk2yV-454HhtDQwX-3qB2N6jxHhcLvNJk"/>
+<img alt="Icons Creator Interface" src="https://github.com/user-attachments/assets/f999e906-8da3-4709-a459-5e31a3704e8e"/>
    
 </div>
 
