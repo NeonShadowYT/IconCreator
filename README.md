@@ -235,4 +235,6 @@
    
 **Сделано с ❤️ для тех, кто не хочет мучиться с иконками вручную**
 
+<img src="https://img.itch.zone/aW1nLzI2MTc1MTAzLmdpZg==/original/ZSdakp.gif" width="100%" alt="Starve Neon Banner">
+
 </div>
