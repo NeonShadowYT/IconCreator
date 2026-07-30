@@ -240,28 +240,31 @@ namespace NeonImperium.IconsCreation
 
         private static TextureSettings CloneTextureSettings(TextureSettings original)
         {
-            return new TextureSettings
+            TextureSettings clone = new()
             {
                 Compression = original.Compression,
                 FilterMode = original.FilterMode,
                 AnisoLevel = original.AnisoLevel,
-                Size = original.Size
+                Size = original.Size,
+                RenderSize = original.RenderSize
             };
+            return clone;
         }
 
         private static CameraSettings CloneCameraSettings(CameraSettings original)
         {
-            return new CameraSettings
+            CameraSettings clone = new()
             {
                 Rotation = original.Rotation,
                 Padding = original.Padding,
                 RenderShadows = original.RenderShadows
             };
+            return clone;
         }
 
         private static LightSettings CloneLightSettings(LightSettings original)
         {
-            LightSettings clone = new LightSettings
+            LightSettings clone = new()
             {
                 Type = original.Type,
                 DirectionalRotation = original.DirectionalRotation,
@@ -281,13 +284,14 @@ namespace NeonImperium.IconsCreation
 
         private static ShadowSettings CloneShadowSettings(ShadowSettings original)
         {
-            return new ShadowSettings
+            ShadowSettings clone = new()
             {
                 Enabled = original.Enabled,
                 Color = original.Color,
                 Offset = original.Offset,
                 Scale = original.Scale
             };
+            return clone;
         }
     }
 }

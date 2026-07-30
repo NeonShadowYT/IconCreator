@@ -15,6 +15,7 @@ namespace NeonImperium.IconsCreation
             presetsFolder = EditorPrefs.GetString("presetsFolder", "Assets/Plugins/NeonImperium/IconCreator/Presets");
             
             textureSettings.Size = EditorPrefs.GetInt("textureSize", 512);
+            textureSettings.RenderSize = EditorPrefs.GetInt("renderSize", 2048);
             textureSettings.Compression = (TextureImporterCompression)EditorPrefs.GetInt("compression", (int)TextureImporterCompression.CompressedHQ);
             textureSettings.FilterMode = (FilterMode)EditorPrefs.GetInt("filterMode", (int)FilterMode.Point);
             textureSettings.AnisoLevel = EditorPrefs.GetInt("anisoLevel", 0);
@@ -53,6 +54,7 @@ namespace NeonImperium.IconsCreation
             EditorPrefs.SetString("scenePath", scenePath);
             EditorPrefs.SetString("presetsFolder", presetsFolder);
             EditorPrefs.SetInt("textureSize", textureSettings.Size);
+            EditorPrefs.SetInt("renderSize", textureSettings.RenderSize);
             EditorPrefs.SetFloat("padding", cameraSettings.Padding);
             EditorPrefs.SetInt("compression", (int)textureSettings.Compression);
             EditorPrefs.SetInt("filterMode", (int)textureSettings.FilterMode);

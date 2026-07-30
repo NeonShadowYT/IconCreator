@@ -62,9 +62,12 @@ namespace NeonImperium.IconsCreation
                 if (a.Targets[i] != b.Targets[i]) return false;
             }
             
-            return a.CameraTag == b.CameraTag &&
+            // Сравниваем все параметры, включая Directory и RenderSize
+            return a.Directory == b.Directory &&
+                   a.CameraTag == b.CameraTag &&
                    a.ObjectsLayer == b.ObjectsLayer &&
                    a.Texture.Size == b.Texture.Size &&
+                   a.Texture.RenderSize == b.Texture.RenderSize &&
                    a.Texture.Compression == b.Texture.Compression &&
                    a.Texture.FilterMode == b.Texture.FilterMode &&
                    a.Texture.AnisoLevel == b.Texture.AnisoLevel &&
@@ -72,6 +75,15 @@ namespace NeonImperium.IconsCreation
                    a.Camera.Rotation == b.Camera.Rotation &&
                    a.Camera.RenderShadows == b.Camera.RenderShadows &&
                    a.Light.Type == b.Light.Type &&
+                   a.Light.DirectionalRotation == b.Light.DirectionalRotation &&
+                   a.Light.DirectionalColor == b.Light.DirectionalColor &&
+                   a.Light.DirectionalIntensity == b.Light.DirectionalIntensity &&
+                   a.Light.PointLights[0].Position == b.Light.PointLights[0].Position &&
+                   a.Light.PointLights[0].Color == b.Light.PointLights[0].Color &&
+                   a.Light.PointLights[0].Intensity == b.Light.PointLights[0].Intensity &&
+                   a.Light.PointLights[1].Position == b.Light.PointLights[1].Position &&
+                   a.Light.PointLights[1].Color == b.Light.PointLights[1].Color &&
+                   a.Light.PointLights[1].Intensity == b.Light.PointLights[1].Intensity &&
                    a.Shadow.Enabled == b.Shadow.Enabled &&
                    a.Shadow.Color == b.Shadow.Color &&
                    a.Shadow.Offset == b.Shadow.Offset &&

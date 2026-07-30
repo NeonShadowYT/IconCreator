@@ -6,8 +6,8 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
 {
     public static class SpawnSettingsDrawer
     {
-        private static readonly int[] SIZE_OPTIONS = { 32, 64, 128, 256, 512, 1024, 2048 };
-        private static readonly string[] SIZE_OPTIONS_STR = { "32px", "64px", "128px", "256px", "512px", "1024px", "2048px" };
+        private static readonly int[] SIZE_OPTIONS = { 32, 64, 128, 256, 512, 1024, 2048, 4096 };
+        private static readonly string[] SIZE_OPTIONS_STR = { "32px", "64px", "128px", "256px", "512px", "1024px", "2048px", "4096px" };
 
         public static void Draw(ref bool showSpawnSettings, ref string directory, ref string cameraTag, ref string objectsLayer,
             ref string scenePath, TextureSettings textureSettings, CameraSettings cameraSettings, EditorStyleManager styleManager, Color headerColor)
@@ -26,7 +26,8 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
                 DrawDirectoryField(ref directory);
                 DrawCameraTagField(ref cameraTag);
                 DrawObjectsLayerField(ref objectsLayer);
-                DrawSizeDropdown(textureSettings);
+                DrawSizeDropdown(textureSettings, "Размер иконки (Max Size)", "Размер текстуры в пикселях (Max Size при импорте)", ref textureSettings.Size);
+                DrawSizeDropdown(textureSettings, "Разрешение рендеринга", "Разрешение, в котором рендерится иконка (чем выше, тем качественнее)", ref textureSettings.RenderSize);
                 DrawPaddingSlider(cameraSettings);
                 DrawRotationField(cameraSettings);
                 DrawShadowsToggle(cameraSettings);
@@ -118,16 +119,16 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             EditorGUILayout.EndHorizontal();
         }
 
-        private static void DrawSizeDropdown(TextureSettings textureSettings)
+        private static void DrawSizeDropdown(TextureSettings textureSettings, string label, string tooltip, ref int sizeField)
         {
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(new GUIContent("Размер иконки", "Размер текстуры в пикселях"), GUILayout.Width(120));
+            EditorGUILayout.LabelField(new GUIContent(label, tooltip), GUILayout.Width(120));
 
-            int currentSizeIndex = System.Array.IndexOf(SIZE_OPTIONS, textureSettings.Size);
-            if (currentSizeIndex == -1) currentSizeIndex = 4;
+            int currentSizeIndex = System.Array.IndexOf(SIZE_OPTIONS, sizeField);
+            if (currentSizeIndex == -1) currentSizeIndex = 4; // default to 512
 
             int newSizeIndex = EditorGUILayout.Popup(currentSizeIndex, SIZE_OPTIONS_STR);
-            textureSettings.Size = SIZE_OPTIONS[newSizeIndex];
+            sizeField = SIZE_OPTIONS[newSizeIndex];
 
             EditorGUILayout.EndHorizontal();
         }

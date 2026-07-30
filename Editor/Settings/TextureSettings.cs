@@ -15,7 +15,10 @@ namespace NeonImperium.IconsCreation
         [Tooltip("Уровень анизотропной фильтрации")]
         public int AnisoLevel = 0;
         
-        [Tooltip("Размер текстуры в пикселях")]
+        [Tooltip("Размер текстуры в пикселях (Max Size при импорте)")]
         public int Size = 512;
+        
+        [Tooltip("Разрешение рендеринга (чем выше, тем качественнее)")]
+        public int RenderSize = 2048;
     }
 }

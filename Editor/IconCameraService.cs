@@ -90,9 +90,8 @@ namespace NeonImperium.IconsCreation
         {
             if (!_targetObject || _camera == null) return;
 
-            _targetBounds = _targetObject.GetOrthographicBounds(_camera);
-            
             SetCameraRotation();
+            _targetBounds = _targetObject.GetOrthographicBounds(_camera);
             SetCameraPosition();
             SetCameraSize();
         }
@@ -126,10 +125,12 @@ namespace NeonImperium.IconsCreation
 
         public Texture2D CaptureView()
         {
-            if (_camera == null || _textureSettings.Size < 1)
+            if (_camera == null || _textureSettings == null || _textureSettings.RenderSize < 1)
             {
                 return CreateFallbackTexture();
             }
+
+            int renderSize = _textureSettings.RenderSize;
 
             RenderTexture tempRT = null;
             Texture2D image = null;
@@ -139,7 +140,7 @@ namespace NeonImperium.IconsCreation
                 _cameraWasActive = _camera.gameObject.activeSelf;
                 _camera.gameObject.SetActive(true);
                 
-                tempRT = RenderTexture.GetTemporary(_textureSettings.Size, _textureSettings.Size, 24, RenderTextureFormat.ARGB32);
+                tempRT = RenderTexture.GetTemporary(renderSize, renderSize, 24, RenderTextureFormat.ARGB32);
                 if (tempRT == null) return CreateFallbackTexture();
                 
                 RenderTexture previousRT = _camera.targetTexture;
@@ -148,8 +149,8 @@ namespace NeonImperium.IconsCreation
 
                 _camera.Render();
 
-                image = new Texture2D(_textureSettings.Size, _textureSettings.Size, TextureFormat.RGBA32, false);
-                image.ReadPixels(new Rect(0, 0, _textureSettings.Size, _textureSettings.Size), 0, 0);
+                image = new Texture2D(renderSize, renderSize, TextureFormat.RGBA32, false);
+                image.ReadPixels(new Rect(0, 0, renderSize, renderSize), 0, 0);
                 image.Apply();
                 
                 if (_shadowSettings.Enabled && image != null)
