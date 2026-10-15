@@ -41,7 +41,7 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             if (GUILayout.Button($"🖼️ {buttonText}", buttonStyle))
                 createIcons?.Invoke();
             GUI.enabled = true;
-            
+
             if (isGenerating)
             {
                 EditorGUILayout.HelpBox("Создание иконок...", MessageType.Info);

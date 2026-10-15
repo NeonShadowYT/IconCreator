@@ -8,6 +8,8 @@ namespace NeonImperium.IconsCreation
         public CameraSettings cameraSettings;
         public LightSettings lightSettings;
         public ShadowSettings shadowSettings;
+        public IconType iconType;
+        public TextureObjectData[] textureObjects;
 
         public PresetData()
         {
@@ -15,6 +17,8 @@ namespace NeonImperium.IconsCreation
             cameraSettings = new CameraSettings();
             lightSettings = new LightSettings();
             shadowSettings = new ShadowSettings();
+            iconType = IconType.Mesh;
+            textureObjects = new TextureObjectData[0];
         }
     }
 }

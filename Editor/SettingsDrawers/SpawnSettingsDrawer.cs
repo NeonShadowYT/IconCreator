@@ -10,7 +10,8 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
         private static readonly string[] SIZE_OPTIONS_STR = { "32px", "64px", "128px", "256px", "512px", "1024px", "2048px", "4096px" };
 
         public static void Draw(ref bool showSpawnSettings, ref string directory, ref string cameraTag, ref string objectsLayer,
-            ref string scenePath, TextureSettings textureSettings, CameraSettings cameraSettings, EditorStyleManager styleManager, Color headerColor)
+            ref string scenePath, TextureSettings textureSettings, CameraSettings cameraSettings, EditorStyleManager styleManager,
+            Color headerColor, ref IconType iconType)
         {
             EditorGUILayout.BeginVertical("box");
             string colorHex = ColorUtility.ToHtmlStringRGB(headerColor);
@@ -22,15 +23,25 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             {
                 EditorGUI.indentLevel++;
 
+                iconType = (IconType)EditorGUILayout.EnumPopup(new GUIContent("Тип иконки", "Mesh — 3D модель, Texture — композиция из текстур"), iconType);
+
                 DrawScenePathField(ref scenePath);
                 DrawDirectoryField(ref directory);
                 DrawCameraTagField(ref cameraTag);
                 DrawObjectsLayerField(ref objectsLayer);
-                DrawSizeDropdown(textureSettings, "Размер иконки (Max Size)", "Размер текстуры в пикселях (Max Size при импорте)", ref textureSettings.Size);
-                DrawSizeDropdown(textureSettings, "Разрешение рендеринга", "Разрешение, в котором рендерится иконка (чем выше, тем качественнее)", ref textureSettings.RenderSize);
-                DrawPaddingSlider(cameraSettings);
-                DrawRotationField(cameraSettings);
-                DrawShadowsToggle(cameraSettings);
+                DrawSizeDropdown(textureSettings, "Размер иконки (Max Size)",
+                    "Размер текстуры в пикселях (Max Size при импорте)", ref textureSettings.Size);
+                DrawSizeDropdown(textureSettings, "Разрешение рендеринга",
+                    "Разрешение готовой иконки (чем выше, тем качественнее)", ref textureSettings.RenderSize);
+                DrawSizeDropdown(textureSettings, "Разрешение превью",
+                    "Разрешение для живого превью (влияет только на редактор)", ref textureSettings.PreviewSize);
+
+                if (iconType == IconType.Mesh)
+                {
+                    DrawPaddingSlider(cameraSettings);
+                    DrawRotationField(cameraSettings);
+                    DrawShadowsToggle(cameraSettings);
+                }
 
                 EditorGUI.indentLevel--;
             }
@@ -63,7 +74,6 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
         {
             if (string.IsNullOrEmpty(path) || !path.StartsWith("Assets/"))
                 return false;
-
             string directory = Path.GetDirectoryName(path);
             return !string.IsNullOrEmpty(directory);
         }
@@ -125,7 +135,7 @@ namespace NeonImperium.IconsCreation.SettingsDrawers
             EditorGUILayout.LabelField(new GUIContent(label, tooltip), GUILayout.Width(120));
 
             int currentSizeIndex = System.Array.IndexOf(SIZE_OPTIONS, sizeField);
-            if (currentSizeIndex == -1) currentSizeIndex = 4; // default to 512
+            if (currentSizeIndex == -1) currentSizeIndex = 4;
 
             int newSizeIndex = EditorGUILayout.Popup(currentSizeIndex, SIZE_OPTIONS_STR);
             sizeField = SIZE_OPTIONS[newSizeIndex];

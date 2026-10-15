@@ -42,19 +42,19 @@ namespace NeonImperium.IconsCreation
             string json = JsonUtility.ToJson(presetData, true);
             File.WriteAllText(filePath, json);
             AssetDatabase.Refresh();
-            
+
             EditorPrefs.SetString("currentPresetName", presetData.presetName);
         }
 
         public List<PresetData> LoadAllPresets()
         {
             List<PresetData> presets = new List<PresetData>();
-            
+
             if (string.IsNullOrEmpty(_presetsFolder) || !Directory.Exists(_presetsFolder))
                 return presets;
 
             string[] jsonFiles = Directory.GetFiles(_presetsFolder, "*.json");
-            
+
             foreach (string filePath in jsonFiles)
             {
                 try
@@ -116,89 +116,105 @@ namespace NeonImperium.IconsCreation
 
             string filePath = Path.Combine(_presetsFolder, $"{presetName}.json");
             string metaFilePath = filePath + ".meta";
-            
+
             if (File.Exists(filePath))
                 File.Delete(filePath);
-            
+
             if (File.Exists(metaFilePath))
                 File.Delete(metaFilePath);
-            
+
             AssetDatabase.Refresh();
         }
 
-        public Texture2D GeneratePreviewForPreset(PresetData preset, List<Object> targets, string scenePath)
+        /// <summary>
+        /// Генерирует превью пресета в изолированной сцене иконок.
+        /// Не использует объекты из текущей сцены пользователя — только куб-заглушку
+        /// (для меш-пресетов) или собственные текстуры пресета (для текстурных).
+        /// </summary>
+        public Texture2D GeneratePreviewForPreset(PresetData preset, string scenePath,
+            string objectsLayer, string cameraTag)
         {
             if (EditorApplication.isPlaying) return null;
+            if (preset == null || preset.textureSettings == null) return null;
 
-            GameObject previewTarget = GetPreviewTarget(targets);
-            if (previewTarget == null) return null;
-            
+            // Страховка от старых/битых пресетов
+            if (preset.textureSettings.PreviewSize <= 0 || preset.textureSettings.PreviewSize > 1024)
+                preset.textureSettings.PreviewSize = 512;
+
             Texture2D preview = null;
+            IconSceneService sceneService = new IconSceneService();
+            IconCameraService cameraService = new IconCameraService();
+
             try
             {
-                IconsCreatorData tempData = new IconsCreatorData(
-                    preset.textureSettings,
-                    preset.cameraSettings,
-                    preset.lightSettings,
-                    preset.shadowSettings,
-                    "Assets/Icons/",
-                    new List<Object> { previewTarget },
-                    "EditorOnly",
-                    "Default"
-                );
+                cameraService.Initialize(preset.textureSettings, preset.cameraSettings,
+                    preset.shadowSettings, cameraTag);
 
-                IconSceneService sceneService = new IconSceneService();
-                IconCameraService cameraService = new IconCameraService();
-                
-                cameraService.Initialize(preset.textureSettings, preset.cameraSettings, preset.shadowSettings, "EditorOnly");
-                
-                sceneService.ExecuteWithTarget(previewTarget, previewTarget.name, preset.lightSettings, 
-                    preset.cameraSettings.RenderShadows, "EditorOnly", "Default", scenePath, target =>
+                sceneService.BeginBatch(cameraTag, objectsLayer, scenePath, preset.lightSettings);
+                try
                 {
-                    if (target != null)
+                    if (preset.iconType == IconType.Mesh)
                     {
-                        cameraService.SetupForTarget(target);
-                        preview = cameraService.CaptureView();
+                        GameObject previewTarget = CreatePreviewPrimitive(objectsLayer);
+                        try
+                        {
+                            sceneService.ProcessMeshTargetInBatch(previewTarget, "PresetPreview",
+                                preset.cameraSettings.RenderShadows, objectsLayer, container =>
+                            {
+                                if (container == null) return;
+                                cameraService.SetupForTarget(container);
+                                preview = cameraService.CaptureView(isPreview: true, applyShadow: true);
+                            });
+                        }
+                        finally
+                        {
+                            if (previewTarget != null)
+                                UnityEngine.Object.DestroyImmediate(previewTarget);
+                        }
                     }
-                });
+                    else
+                    {
+                        sceneService.ProcessTextureTargetsInBatch(preset.textureObjects, objectsLayer, () =>
+                        {
+                            cameraService.SetupForTexture(objectsLayer);
+                            preview = cameraService.CaptureView(isPreview: true, applyShadow: true);
+                        });
+                    }
+                }
+                finally
+                {
+                    sceneService.EndBatch();
+                }
 
-                cameraService.Cleanup();
                 return preview;
             }
             catch (System.Exception ex)
             {
                 Debug.LogError($"Failed to generate preview for preset {preset.presetName}: {ex.Message}");
-                if (preview != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(preview);
-                }
+                if (preview != null) UnityEngine.Object.DestroyImmediate(preview);
                 return null;
             }
             finally
             {
-                if (previewTarget.name == "PreviewCube")
-                {
-                    UnityEngine.Object.DestroyImmediate(previewTarget);
-                }
+                cameraService.Cleanup();
             }
         }
 
-        private GameObject GetPreviewTarget(List<Object> targets)
+        private GameObject CreatePreviewPrimitive(string objectsLayer)
         {
-            if (targets != null && targets.Count > 0)
-            {
-                foreach (Object target in targets)
-                {
-                    if (target is GameObject gameObject && gameObject != null)
-                    {
-                        return gameObject;
-                    }
-                }
-            }
-            
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            cube.name = "PreviewCube";
+            cube.name = "PresetPreviewCube";
+            cube.transform.position = Vector3.zero;
+            cube.transform.rotation = Quaternion.identity;
             cube.transform.localScale = Vector3.one * 0.5f;
+
+            int layer = LayerMask.NameToLayer(objectsLayer);
+            if (layer == -1) layer = LayerMask.NameToLayer("Default");
+            cube.layer = layer;
+
+            Collider col = cube.GetComponent<Collider>();
+            if (col != null) UnityEngine.Object.DestroyImmediate(col);
+
             return cube;
         }
 
